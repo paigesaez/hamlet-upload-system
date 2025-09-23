@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import CreatableSelect from 'react-select/creatable';
-import { components, OptionProps, SingleValue } from 'react-select';
+import { components, OptionProps, SingleValue, MultiValue } from 'react-select';
 
 interface GoverningBody {
   value: string;
@@ -117,6 +117,7 @@ function generateLargeDataset(): GoverningBody[] {
 }
 
 // Custom MenuList component with optimized scrolling
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MenuList = (props: any) => {
   const { children, maxHeight } = props;
 
@@ -158,7 +159,7 @@ export default function SearchableDropdown({
   disabled = false,
   label
 }: SearchableDropdownProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   // Generate large dataset
   const governingBodies = useMemo(() => generateLargeDataset(), []);
@@ -167,8 +168,10 @@ export default function SearchableDropdown({
   const selectedOption = governingBodies.find(gb => gb.label === value) ||
     (value ? { value: 'custom', label: value, city: value, state: '', type: 'city' as const } : null);
 
-  const handleChange = (newValue: SingleValue<GoverningBody>) => {
-    onChange(newValue ? newValue.label : '');
+  const handleChange = (newValue: SingleValue<GoverningBody> | MultiValue<GoverningBody>) => {
+    if (Array.isArray(newValue)) return; // Ignore multi-select
+    const singleValue = newValue as SingleValue<GoverningBody>;
+    onChange(singleValue ? singleValue.label : '');
   };
 
   // Custom filter function for better search performance

@@ -44,7 +44,7 @@ export default function ThemeSwitcher() {
                 className="max-w-xs"
               >
                 {themes.map((theme) => (
-                  <SelectItem key={theme.key} value={theme.key}>
+                  <SelectItem key={theme.key}>
                     {theme.label}
                   </SelectItem>
                 ))}

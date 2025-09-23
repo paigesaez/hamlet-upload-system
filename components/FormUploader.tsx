@@ -13,7 +13,6 @@ import {
   Textarea,
   Select,
   SelectItem,
-  Chip,
   Progress,
 } from '@heroui/react';
 import { CloudUpload, Delete, Description, CheckCircle } from '@mui/icons-material';
@@ -166,7 +165,7 @@ export default function FormUploader() {
             className="w-full"
           >
             {categories.map((category) => (
-              <SelectItem key={category.value} value={category.value}>
+              <SelectItem key={category.value}>
                 {category.label}
               </SelectItem>
             ))}

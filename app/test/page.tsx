@@ -1,12 +1,12 @@
 'use client';
 
 import { Select, SelectItem, DatePicker } from '@heroui/react';
-import { parseDate } from '@internationalized/date';
 import { useState } from 'react';
 
 export default function TestPage() {
   const [selectedValue, setSelectedValue] = useState('');
-  const [dateValue, setDateValue] = useState(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [dateValue, setDateValue] = useState<any>(null);
 
   return (
     <div className="p-8 max-w-2xl mx-auto space-y-6 bg-white min-h-screen">
@@ -20,9 +20,9 @@ export default function TestPage() {
           selectedKeys={selectedValue ? [selectedValue] : []}
           onSelectionChange={(keys) => setSelectedValue(Array.from(keys)[0] as string)}
         >
-          <SelectItem key="option1" value="option1">Option 1</SelectItem>
-          <SelectItem key="option2" value="option2">Option 2</SelectItem>
-          <SelectItem key="option3" value="option3">Option 3</SelectItem>
+          <SelectItem key="option1">Option 1</SelectItem>
+          <SelectItem key="option2">Option 2</SelectItem>
+          <SelectItem key="option3">Option 3</SelectItem>
         </Select>
         <p className="mt-2 text-sm text-gray-600">Selected: {selectedValue || 'none'}</p>
       </div>

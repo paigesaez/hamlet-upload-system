@@ -1,11 +1,8 @@
 'use client';
 
 import { Select, SelectItem, DatePicker } from '@heroui/react';
-import { useState } from 'react';
 
 export default function VerifyPage() {
-  const [selectValue, setSelectValue] = useState('');
-  const [dateValue, setDateValue] = useState(null);
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-8 bg-gray-50 min-h-screen">

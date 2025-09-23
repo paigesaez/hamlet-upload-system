@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Button, Card, CardBody, Divider, DatePicker, Chip, Spinner } from '@heroui/react';
-import { parseDate } from '@internationalized/date';
 import CreatableSelect from 'react-select/creatable';
 import Select from 'react-select';
 
@@ -69,7 +68,8 @@ export default function HamletBatchUpload() {
     body: '',
     meetingType: '',
   });
-  const [dateValue, setDateValue] = useState(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [dateValue, setDateValue] = useState<any>(null);
   const [validationStatus, setValidationStatus] = useState({
     notionExists: null as boolean | null,
     filesUploaded: null as boolean | null,
@@ -550,7 +550,7 @@ export default function HamletBatchUpload() {
                 <div>
                   {validationStatus.filesUploaded && (
                     <p className="text-sm text-warning-600">
-                      Files already exist. Click "Upload & Run Pipeline" to overwrite.
+                      Files already exist. Click &quot;Upload &amp; Run Pipeline&quot; to overwrite.
                     </p>
                   )}
                 </div>

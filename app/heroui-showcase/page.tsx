@@ -5,8 +5,6 @@ import {
   Card,
   CardBody,
   CardHeader,
-  CardFooter,
-  Divider,
   Select,
   SelectItem,
   Input,
@@ -62,15 +60,15 @@ import {
   Spinner,
   Skeleton,
   User,
-  ScrollShadow,
   Spacer
 } from '@heroui/react';
 import { useState } from 'react';
 import { parseDate } from '@internationalized/date';
 
 export default function HeroUIShowcase() {
-  const [selectedKeys, setSelectedKeys] = useState(new Set(["1"]));
-  const [dateValue, setDateValue] = useState(parseDate("2024-09-22"));
+  const [selectedKey, setSelectedKey] = useState("1");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [dateValue, setDateValue] = useState<any>(parseDate("2024-09-22"));
   const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const [sliderValue, setSliderValue] = useState(50);
   const [switchValue, setSwitchValue] = useState(false);
@@ -179,7 +177,7 @@ export default function HeroUIShowcase() {
                 label="Date"
                 variant="flat"
                 value={dateValue}
-                onChange={setDateValue}
+                onChange={(value) => setDateValue(value)}
               />
               <TimeInput
                 label="Event Time"
@@ -301,7 +299,7 @@ export default function HeroUIShowcase() {
             </div>
 
             <div className="flex gap-4">
-              <Code>const hello = "world";</Code>
+              <Code>const hello = &quot;world&quot;;</Code>
               <Kbd>cmd</Kbd>
               <Kbd>shift</Kbd>
               <Kbd>K</Kbd>
@@ -337,7 +335,7 @@ export default function HeroUIShowcase() {
             <h2 className="text-2xl font-semibold">Layout Components</h2>
           </CardHeader>
           <CardBody>
-            <Tabs aria-label="Options" selectedKeys={selectedKeys} onSelectionChange={setSelectedKeys}>
+            <Tabs aria-label="Options" selectedKey={selectedKey} onSelectionChange={(key) => setSelectedKey(key as string)}>
               <Tab key="1" title="Photos">
                 <Card>
                   <CardBody>
