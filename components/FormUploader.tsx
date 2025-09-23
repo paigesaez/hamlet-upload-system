@@ -14,7 +14,7 @@ import {
   Select,
   SelectItem,
   Progress,
-} from '@heroui/react';
+} from '@nextui-org/react';
 import { CloudUpload, Delete, Description, CheckCircle } from '@mui/icons-material';
 import toast from 'react-hot-toast';
 

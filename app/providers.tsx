@@ -1,13 +1,13 @@
 'use client';
 
-import { HeroUIProvider } from '@heroui/react';
+import { NextUIProvider } from '@nextui-org/react';
 import { Toaster } from 'react-hot-toast';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <HeroUIProvider>
+    <NextUIProvider>
       {children}
       <Toaster position="top-right" />
-    </HeroUIProvider>
+    </NextUIProvider>
   );
 }

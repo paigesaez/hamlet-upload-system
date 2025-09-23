@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { Button, Card, CardBody, Divider, DatePicker, Chip, Spinner } from '@heroui/react';
+import { Button, Card, CardBody, Divider, DatePicker, Chip, Spinner } from '@nextui-org/react';
 import CreatableSelect from 'react-select/creatable';
 import Select from 'react-select';
 

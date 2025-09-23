@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Card, CardBody, CardHeader, Select, SelectItem } from '@heroui/react';
+import { Button, Card, CardBody, CardHeader, Select, SelectItem } from '@nextui-org/react';
 
 const themes = [
   { key: 'light', label: '☀️ Light - Clean and bright' },
