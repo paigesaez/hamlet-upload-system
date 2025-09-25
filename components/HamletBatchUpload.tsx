@@ -62,7 +62,7 @@ export default function HamletBatchUpload() {
   const [agendaFiles, setAgendaFiles] = useState<FileWithProgress[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [metadata, setMetadata] = useState({
-    cityCountyState: '',
+    cityCountyState: [] as string[],
     placeType: '',
     meetingDate: '',
     body: '',
@@ -125,7 +125,7 @@ export default function HamletBatchUpload() {
   // Validate when location is selected
   useEffect(() => {
     const validateLocation = async () => {
-      if (metadata.cityCountyState) {
+      if (metadata.cityCountyState && metadata.cityCountyState.length > 0) {
         setValidationStatus(prev => ({ ...prev, isValidating: true }));
 
         // Simulate API validation for Notion entry
@@ -200,7 +200,7 @@ export default function HamletBatchUpload() {
     }));
   };
 
-  const isFormValid = metadata.cityCountyState && metadata.meetingDate &&
+  const isFormValid = metadata.cityCountyState.length > 0 && metadata.meetingDate &&
                       (audioFiles.length > 0 || agendaFiles.length > 0);
 
   return (
@@ -211,7 +211,7 @@ export default function HamletBatchUpload() {
             {/* Header */}
             <div className="px-8 py-6 border-b border-gray-200">
               <h1 className="text-2xl font-semibold text-gray-900">Hamlet Upload System</h1>
-              <p className="mt-2 text-sm text-gray-600">
+              <p className="mt-2 text-base text-gray-600">
                 Upload meeting recordings and agendas for transcription and processing
               </p>
             </div>
@@ -223,7 +223,7 @@ export default function HamletBatchUpload() {
                   {validationStatus.isValidating && (
                     <div className="flex items-center gap-2">
                       <Spinner size="sm" />
-                      <span className="text-sm text-gray-600">Validating...</span>
+                      <span className="text-base text-gray-600">Validating...</span>
                     </div>
                   )}
                   {!validationStatus.isValidating && validationStatus.notionExists !== null && (
@@ -272,9 +272,10 @@ export default function HamletBatchUpload() {
               <div className="grid grid-cols-2 gap-6">
                 <SearchableDropdown
                   value={metadata.cityCountyState}
-                  onChange={(value) => setMetadata(prev => ({ ...prev, cityCountyState: value }))}
+                  onChange={(value) => setMetadata(prev => ({ ...prev, cityCountyState: value as string[] }))}
                   required
                   disabled={isUploading}
+                  isMulti={true}
                 />
 
                 <DatePicker
@@ -297,7 +298,7 @@ export default function HamletBatchUpload() {
               <div className="grid grid-cols-3 gap-6">
                 {/* Place Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Place type</label>
+                  <label className="block text-base font-medium text-gray-700 mb-2">Place type</label>
                   <CreatableSelect
                     instanceId="place-type-select"
                     value={metadata.placeType ? { value: metadata.placeType, label: metadata.placeType.charAt(0).toUpperCase() + metadata.placeType.slice(1) } : null}
@@ -339,7 +340,7 @@ export default function HamletBatchUpload() {
 
                 {/* Body Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Body type</label>
+                  <label className="block text-base font-medium text-gray-700 mb-2">Body type</label>
                   <CreatableSelect
                     instanceId="body-type-select"
                     value={metadata.body ? { value: metadata.body, label: metadata.body } : null}
@@ -377,7 +378,7 @@ export default function HamletBatchUpload() {
 
                 {/* Meeting Type */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Meeting type</label>
+                  <label className="block text-base font-medium text-gray-700 mb-2">Meeting type</label>
                   <Select
                     instanceId="meeting-type-select"
                     value={metadata.meetingType ? { value: metadata.meetingType, label: metadata.meetingType.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') } : null}
@@ -421,14 +422,14 @@ export default function HamletBatchUpload() {
               <div className="grid grid-cols-2 gap-6">
                 {/* Agenda PDF Drop Zone */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Agenda PDF *</h3>
+                  <h3 className="text-base font-medium text-gray-700 mb-2">Agenda PDF *</h3>
                   <div
                     className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors cursor-pointer"
                     onClick={() => agendaInputRef.current?.click()}
                   >
                     <CloudUploadIcon />
-                    <p className="mt-2 text-sm text-gray-600">Drop PDF here or click to browse</p>
-                    <p className="text-xs text-gray-500 mt-1">PDF files only</p>
+                    <p className="mt-2 text-base text-gray-600">Drop PDF here or click to browse</p>
+                    <p className="text-sm text-gray-500 mt-1">PDF files only</p>
                   </div>
 
                   <input
@@ -451,8 +452,8 @@ export default function HamletBatchUpload() {
                               <FileIcon />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900">{agendaFiles[0].file.name}</p>
-                              <p className="text-xs text-gray-500">{formatFileSize(agendaFiles[0].file.size)}</p>
+                              <p className="text-base font-medium text-gray-900">{agendaFiles[0].file.name}</p>
+                              <p className="text-sm text-gray-500">{formatFileSize(agendaFiles[0].file.size)}</p>
                             </div>
                           </div>
                           <div className="flex items-center space-x-2">
@@ -482,14 +483,14 @@ export default function HamletBatchUpload() {
                 </div>
                 {/* Audio/Video Drop Zone */}
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Audio/Video File *</h3>
+                  <h3 className="text-base font-medium text-gray-700 mb-2">Audio/Video File *</h3>
                   <div
                     className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary-400 transition-colors cursor-pointer"
                     onClick={() => audioInputRef.current?.click()}
                   >
                     <CloudUploadIcon />
-                    <p className="mt-2 text-sm text-gray-600">Drop audio/video here or click to browse</p>
-                    <p className="text-xs text-gray-500 mt-1">MP4, M4A, MP3, MOV</p>
+                    <p className="mt-2 text-base text-gray-600">Drop audio/video here or click to browse</p>
+                    <p className="text-sm text-gray-500 mt-1">MP4, M4A, MP3, MOV</p>
                   </div>
 
                   <input
@@ -512,8 +513,8 @@ export default function HamletBatchUpload() {
                               <FileIcon />
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900">{audioFiles[0].file.name}</p>
-                              <p className="text-xs text-gray-500">{formatFileSize(audioFiles[0].file.size)}</p>
+                              <p className="text-base font-medium text-gray-900">{audioFiles[0].file.name}</p>
+                              <p className="text-sm text-gray-500">{formatFileSize(audioFiles[0].file.size)}</p>
                             </div>
                           </div>
                           <div className="flex items-center space-x-2">
@@ -549,7 +550,7 @@ export default function HamletBatchUpload() {
               <div className="flex justify-between items-center">
                 <div>
                   {validationStatus.filesUploaded && (
-                    <p className="text-sm text-warning-600">
+                    <p className="text-base text-warning-600">
                       Files already exist. Click &quot;Upload &amp; Run Pipeline&quot; to overwrite.
                     </p>
                   )}

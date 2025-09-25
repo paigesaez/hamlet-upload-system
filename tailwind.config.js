@@ -1,6 +1,7 @@
+/** @type {import('tailwindcss').Config} */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const {nextui} = require("@nextui-org/react");
 
-/** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",

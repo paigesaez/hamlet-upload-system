@@ -134,7 +134,7 @@ const Option = (props: OptionProps<GoverningBody>) => {
     <components.Option {...props}>
       <div className="flex items-center justify-between">
         <span>{props.data.label}</span>
-        <span className="text-xs text-gray-500 ml-2">
+        <span className="text-sm text-gray-500 ml-2">
           {props.data.type === 'county' ? 'County' : props.data.type === 'state' ? 'State' : 'City'}
         </span>
       </div>
@@ -143,12 +143,13 @@ const Option = (props: OptionProps<GoverningBody>) => {
 };
 
 interface SearchableDropdownProps {
-  value: string;
-  onChange: (value: string) => void;
+  value: string | string[];
+  onChange: (value: string | string[]) => void;
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
   label?: string;
+  isMulti?: boolean;
 }
 
 export default function SearchableDropdown({
@@ -157,7 +158,8 @@ export default function SearchableDropdown({
   placeholder = "Type to search cities, counties, or states...",
   required = false,
   disabled = false,
-  label
+  label,
+  isMulti = false
 }: SearchableDropdownProps) {
   const [isLoading] = useState(false);
 
@@ -165,13 +167,23 @@ export default function SearchableDropdown({
   const governingBodies = useMemo(() => generateLargeDataset(), []);
 
   // Check if current value is a custom entry or from the list
-  const selectedOption = governingBodies.find(gb => gb.label === value) ||
-    (value ? { value: 'custom', label: value, city: value, state: '', type: 'city' as const } : null);
+  const selectedOption = isMulti
+    ? (Array.isArray(value)
+        ? value.map(v => governingBodies.find(gb => gb.label === v) ||
+            { value: v.toLowerCase().replace(/\s+/g, '-'), label: v, city: v, state: '', type: 'city' as const })
+        : [])
+    : (typeof value === 'string'
+        ? (governingBodies.find(gb => gb.label === value) ||
+            (value ? { value: 'custom', label: value, city: value, state: '', type: 'city' as const } : null))
+        : null);
 
   const handleChange = (newValue: SingleValue<GoverningBody> | MultiValue<GoverningBody>) => {
-    if (Array.isArray(newValue)) return; // Ignore multi-select
-    const singleValue = newValue as SingleValue<GoverningBody>;
-    onChange(singleValue ? singleValue.label : '');
+    if (isMulti && Array.isArray(newValue)) {
+      onChange(newValue.map(v => v.label));
+    } else if (!isMulti && !Array.isArray(newValue)) {
+      const singleValue = newValue as SingleValue<GoverningBody>;
+      onChange(singleValue ? singleValue.label : '');
+    }
   };
 
   // Custom filter function for better search performance
@@ -193,7 +205,7 @@ export default function SearchableDropdown({
   return (
     <div>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-base font-medium text-gray-700 mb-2">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
@@ -207,6 +219,7 @@ export default function SearchableDropdown({
         isLoading={isLoading}
         isClearable={true}
         isSearchable={true}
+        isMulti={isMulti}
         menuIsOpen={undefined}
         openMenuOnClick={true}
         openMenuOnFocus={false}
@@ -215,7 +228,7 @@ export default function SearchableDropdown({
           Option
         }}
         filterOption={customFilter}
-        closeMenuOnSelect={true}
+        closeMenuOnSelect={!isMulti}
         formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
         onCreateOption={(inputValue) => {
           const newOption = {
@@ -225,7 +238,12 @@ export default function SearchableDropdown({
             state: '',
             type: 'city' as const
           };
-          onChange(newOption.label);
+          if (isMulti) {
+            const currentValues = Array.isArray(value) ? value : [];
+            onChange([...currentValues, newOption.label]);
+          } else {
+            onChange(newOption.label);
+          }
         }}
         styles={{
           control: (base, state) => ({
@@ -251,7 +269,7 @@ export default function SearchableDropdown({
             color: state.isSelected ? '#FFFFFF' : '#11181C',
             cursor: 'pointer',
             padding: '10px 12px',
-            fontSize: '14px',
+            fontSize: '16px',
             transition: 'background-color 0.1s',
             '&:active': {
               backgroundColor: state.isSelected ? '#005bc4' : '#cce3ff'
@@ -273,19 +291,39 @@ export default function SearchableDropdown({
           placeholder: (base) => ({
             ...base,
             color: '#71717a',
-            fontSize: '14px'
+            fontSize: '16px'
           }),
           input: (base) => ({
             ...base,
             color: '#11181C',
             margin: 0,
             padding: 0,
-            fontSize: '14px'
+            fontSize: '16px'
           }),
           singleValue: (base) => ({
             ...base,
             color: '#11181C',
-            fontSize: '14px'
+            fontSize: '16px'
+          }),
+          multiValue: (base) => ({
+            ...base,
+            backgroundColor: '#e6f1ff',
+            borderRadius: '4px'
+          }),
+          multiValueLabel: (base) => ({
+            ...base,
+            color: '#11181C',
+            fontSize: '14px',
+            padding: '2px 6px'
+          }),
+          multiValueRemove: (base) => ({
+            ...base,
+            color: '#71717a',
+            cursor: 'pointer',
+            ':hover': {
+              backgroundColor: '#cce3ff',
+              color: '#ef4444'
+            }
           }),
           clearIndicator: (base) => ({
             ...base,
@@ -323,8 +361,10 @@ export default function SearchableDropdown({
         })}
       />
 
-      <p className="mt-1 text-xs text-gray-500">
-        Search for a location or type to add a new one
+      <p className="mt-1 text-sm text-gray-500">
+        {isMulti
+          ? 'Search and select multiple locations or type to add new ones'
+          : 'Search for a location or type to add a new one'}
       </p>
     </div>
   );
