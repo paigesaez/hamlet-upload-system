@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import PrototypeNavigation from "@/components/PrototypeNavigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Form Uploader",
-  description: "A form uploader prototype application",
+  title: "Upload Prototypes",
+  description: "Multiple file upload prototypes for engineering team",
 };
 
 export default function RootLayout({
@@ -28,7 +29,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>{children}</Providers>
+        <Providers>
+          <PrototypeNavigation />
+          <main className="min-h-screen bg-gray-50">
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );
