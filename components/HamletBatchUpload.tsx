@@ -216,8 +216,8 @@ export default function HamletBatchUpload() {
               </p>
             </div>
 
-            {/* Validation Status */}
-            {(validationStatus.isValidating || validationStatus.notionExists !== null) && (
+            {/* Validation Status - Hidden for now */}
+            {false && (validationStatus.isValidating || validationStatus.notionExists !== null) && (
               <div className="px-8 pt-4">
                 <div className="flex items-center gap-3 flex-wrap">
                   {validationStatus.isValidating && (

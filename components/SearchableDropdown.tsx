@@ -128,12 +128,23 @@ const MenuList = (props: any) => {
   );
 };
 
-// Custom Option component with hover effects
+// Custom Option component with hover effects and checkbox for multi-select
 const Option = (props: OptionProps<GoverningBody>) => {
+  const isMulti = props.isMulti;
   return (
     <components.Option {...props}>
       <div className="flex items-center justify-between">
-        <span>{props.data.label}</span>
+        <div className="flex items-center gap-2">
+          {isMulti && (
+            <input
+              type="checkbox"
+              checked={props.isSelected}
+              onChange={() => {}}
+              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+            />
+          )}
+          <span>{props.data.label}</span>
+        </div>
         <span className="text-sm text-gray-500 ml-2">
           {props.data.type === 'county' ? 'County' : props.data.type === 'state' ? 'State' : 'City'}
         </span>
@@ -229,6 +240,7 @@ export default function SearchableDropdown({
         }}
         filterOption={customFilter}
         closeMenuOnSelect={!isMulti}
+        hideSelectedOptions={false}
         formatCreateLabel={(inputValue) => `Add "${inputValue}"`}
         onCreateOption={(inputValue) => {
           const newOption = {
@@ -248,7 +260,9 @@ export default function SearchableDropdown({
         styles={{
           control: (base, state) => ({
             ...base,
-            minHeight: '42px',
+            minHeight: isMulti ? '56px' : '42px',
+            maxHeight: isMulti ? '120px' : 'auto',
+            overflowY: isMulti ? 'auto' : 'visible',
             borderRadius: '8px',
             borderColor: state.isFocused ? '#006FEE' : '#d4d4d8',
             borderWidth: '2px',
@@ -324,6 +338,13 @@ export default function SearchableDropdown({
               backgroundColor: '#cce3ff',
               color: '#ef4444'
             }
+          }),
+          valueContainer: (base) => ({
+            ...base,
+            maxHeight: isMulti ? '100px' : 'auto',
+            overflowY: isMulti ? 'auto' : 'visible',
+            flexWrap: isMulti ? 'wrap' : 'nowrap',
+            padding: '2px 8px'
           }),
           clearIndicator: (base) => ({
             ...base,
