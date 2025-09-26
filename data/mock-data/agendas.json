@@ -1,0 +1,39 @@
+[
+  {
+    "id": "irvine-a1",
+    "title": "Irvine City Council – Regular Meeting Agenda",
+    "date": "2025-02-12",
+    "time": "6:00PM",
+    "locationId": "irvine",
+    "locationName": "Irvine, CA",
+    "pages": 32,
+    "hasAttachments": true,
+    "matches": [
+      { "label": "budget", "snippet": "FY25 budget revisions discussion" },
+      { "label": "transportation", "snippet": "Transit corridor improvements" }
+    ]
+  },
+  {
+    "id": "houston-a1",
+    "title": "Houston Planning Commission – Public Hearing Agenda",
+    "date": "2025-02-18",
+    "time": "2:00PM",
+    "locationId": "houston",
+    "locationName": "Houston, TX",
+    "pages": 24,
+    "hasAttachments": false,
+    "matches": [
+      { "label": "zoning", "snippet": "Rezoning request for Midtown" }
+    ]
+  },
+  {
+    "id": "mesa-a1",
+    "title": "Mesa Zoning Board – Agenda",
+    "date": "2025-02-20",
+    "time": "4:00PM",
+    "locationId": "mesa",
+    "locationName": "Mesa, AZ",
+    "pages": 18,
+    "hasAttachments": true
+  }
+]

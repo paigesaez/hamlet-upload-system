@@ -1,0 +1,50 @@
+[
+  {
+    "id": "ca",
+    "name": "California",
+    "state": "CA",
+    "type": "state",
+    "children": [
+      { "id": "los-angeles", "name": "Los Angeles", "state": "CA", "type": "city" },
+      { "id": "san-francisco", "name": "San Francisco", "state": "CA", "type": "city", "isLocked": true },
+      { "id": "san-diego", "name": "San Diego", "state": "CA", "type": "city", "isLocked": true },
+      { "id": "irvine", "name": "Irvine", "state": "CA", "type": "city" },
+      { "id": "brea", "name": "Brea", "state": "CA", "type": "city" }
+    ]
+  },
+  {
+    "id": "tx",
+    "name": "Texas",
+    "state": "TX",
+    "type": "state",
+    "children": [
+      { "id": "houston", "name": "Houston", "state": "TX", "type": "city" },
+      { "id": "austin", "name": "Austin", "state": "TX", "type": "city", "isLocked": true },
+      { "id": "dallas", "name": "Dallas", "state": "TX", "type": "city", "isLocked": true },
+      { "id": "san-antonio", "name": "San Antonio", "state": "TX", "type": "city" }
+    ]
+  },
+  {
+    "id": "az",
+    "name": "Arizona",
+    "state": "AZ",
+    "type": "state",
+    "children": [
+      { "id": "phoenix", "name": "Phoenix", "state": "AZ", "type": "city" },
+      { "id": "mesa", "name": "Mesa", "state": "AZ", "type": "city" },
+      { "id": "tucson", "name": "Tucson", "state": "AZ", "type": "city" },
+      { "id": "scottsdale", "name": "Scottsdale", "state": "AZ", "type": "city", "isLocked": true }
+    ]
+  },
+  {
+    "id": "fl",
+    "name": "Florida",
+    "state": "FL",
+    "type": "state",
+    "children": [
+      { "id": "miami", "name": "Miami", "state": "FL", "type": "city" },
+      { "id": "orlando", "name": "Orlando", "state": "FL", "type": "city" },
+      { "id": "tampa", "name": "Tampa", "state": "FL", "type": "city" }
+    ]
+  }
+]

@@ -1,0 +1,66 @@
+{
+  "mesa": [
+    {
+      "id": "mesa-p1",
+      "type": "City Council",
+      "title": "Mesa Gateway Airport Development Plan",
+      "date": "2025-01-15",
+      "locationId": "mesa",
+      "locationName": "Mesa, AZ",
+      "address": "5835 S Sossaman Rd",
+      "status": "under-review"
+    },
+    {
+      "id": "mesa-p2",
+      "type": "Planning Commission",
+      "title": "Downtown Mesa Mixed-Use Development",
+      "date": "2025-01-20",
+      "locationId": "mesa",
+      "locationName": "Mesa, AZ",
+      "address": "120 W Main St",
+      "status": "pending"
+    }
+  ],
+  "brea": [
+    {
+      "id": "brea-p1",
+      "type": "City Council",
+      "title": "Brea Mall Renovation Project",
+      "date": "2025-01-18",
+      "locationId": "brea",
+      "locationName": "Brea, CA",
+      "address": "1065 Brea Mall",
+      "status": "approved"
+    },
+    {
+      "id": "brea-p2",
+      "type": "Planning Commission",
+      "title": "Carbon Canyon Road Widening",
+      "date": "2025-01-25",
+      "locationId": "brea",
+      "locationName": "Brea, CA",
+      "status": "under-review"
+    }
+  ],
+  "houston": [
+    {
+      "id": "houston-p1",
+      "type": "City Council",
+      "title": "Houston Medical District Expansion",
+      "date": "2025-01-16",
+      "locationId": "houston",
+      "locationName": "Houston, TX",
+      "address": "1515 Holcombe Blvd",
+      "status": "approved"
+    },
+    {
+      "id": "houston-p2",
+      "type": "Planning Commission",
+      "title": "Buffalo Bayou Park Enhancement",
+      "date": "2025-01-28",
+      "locationId": "houston",
+      "locationName": "Houston, TX",
+      "status": "pending"
+    }
+  ]
+}

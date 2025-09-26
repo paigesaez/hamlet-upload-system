@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Calendar, Clock, MapPin, Users, FileText, ChevronRight, Download, Share2, Edit } from 'lucide-react';
 import Link from 'next/link';
 import StandardLayout from '@/components/HamletDashboard/StandardLayout';
+import { getLocationInfo, extractLocationIdFromId } from '@/utils/locationHelpers';
 
 interface Participant {
   name: string;
@@ -68,9 +69,11 @@ export default function MeetingDetailPage() {
   // Get meeting data (in production, this would be an API call)
   const meeting: Meeting = mockMeetingData[meetingId] || mockMeetingData['1'];
 
-  // Extract location from meetingId (e.g., 'mesa-m1' -> 'mesa')
-  const locationId = meetingId.split('-')[0];
-  const locationName = locationId.charAt(0).toUpperCase() + locationId.slice(1);
+  // Extract location information from meetingId
+  const locationId = extractLocationIdFromId(meetingId);
+  const locationInfo = getLocationInfo(locationId);
+  const locationName = locationInfo?.name || locationId.charAt(0).toUpperCase() + locationId.slice(1);
+  const locationFullName = locationInfo?.fullName || locationName;
 
   return (
     <StandardLayout>
@@ -85,7 +88,7 @@ export default function MeetingDetailPage() {
               </Link>
               <ChevronRight size={16} className="text-gray-400" />
               <Link href={`/hamlet-dashboard/location/${locationId}?tab=meetings`} className="text-gray-600 hover:text-gray-900">
-                {locationName} Meetings
+                {locationFullName} Meetings
               </Link>
               <ChevronRight size={16} className="text-gray-400" />
               <span className="text-gray-900 font-medium">Meeting Detail</span>

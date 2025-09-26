@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Calendar, Clock, MapPin, ChevronRight, Download, Share2, FileText, Tag } from 'lucide-react';
 import Link from 'next/link';
 import StandardLayout from '@/components/HamletDashboard/StandardLayout';
+import { getLocationInfo, extractLocationIdFromId } from '@/utils/locationHelpers';
 
 interface AgendaItem {
   time: string;
@@ -29,9 +30,7 @@ interface AgendaDetails {
 }
 
 // Generate mock agenda details based on the agenda ID
-const generateAgendaDetails = (agendaId: string): AgendaDetails => {
-  const locationId = agendaId.split('-')[0];
-  const locationName = locationId.charAt(0).toUpperCase() + locationId.slice(1);
+const generateAgendaDetails = (agendaId: string, locationName: string): AgendaDetails => {
 
   return {
     id: agendaId,
@@ -131,12 +130,14 @@ export default function AgendaDetailPage() {
   const router = useRouter();
   const agendaId = params.id as string;
 
-  // Generate agenda details
-  const agendaDetails = generateAgendaDetails(agendaId);
+  // Extract location information from agendaId
+  const locationId = extractLocationIdFromId(agendaId);
+  const locationInfo = getLocationInfo(locationId);
+  const locationName = locationInfo?.name || locationId.charAt(0).toUpperCase() + locationId.slice(1);
+  const locationFullName = locationInfo?.fullName || locationName;
 
-  // Extract location for breadcrumb
-  const locationId = agendaId.split('-')[0];
-  const locationDisplayName = locationId.charAt(0).toUpperCase() + locationId.slice(1);
+  // Generate agenda details
+  const agendaDetails = generateAgendaDetails(agendaId, locationName);
 
   const handleShareClick = () => {
     if (navigator.share) {
@@ -168,7 +169,7 @@ export default function AgendaDetailPage() {
               </Link>
               <ChevronRight size={16} className="text-gray-400" />
               <Link href={`/hamlet-dashboard/location/${locationId}?tab=agendas`} className="text-gray-600 hover:text-gray-900">
-                {locationDisplayName} Agendas
+                {locationFullName} Agendas
               </Link>
               <ChevronRight size={16} className="text-gray-400" />
               <span className="text-gray-900 font-medium">Agenda Detail</span>

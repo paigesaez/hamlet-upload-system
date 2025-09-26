@@ -1,11 +1,14 @@
 import { locations, Meeting, Project } from '@/components/HamletDashboard/mockData';
+import agendasData from '@/data/mock-data/agendas.json';
+import meetingsData from '@/data/mock-data/meetings.json';
+import projectsData from '@/data/mock-data/projects.json';
 
 export interface AgendaMatch {
   label: string;
   snippet?: string;
 }
 
-export interface CachedAgenda {
+export interface AgendaRecord {
   id: string;
   title?: string;
   date?: string;
@@ -13,13 +16,8 @@ export interface CachedAgenda {
   pages?: number;
   hasAttachments?: boolean;
   matches?: AgendaMatch[];
-}
-
-export interface CachedLocationData {
-  meetings?: Meeting[];
-  projects?: Project[];
-  agendas?: CachedAgenda[];
-  generatedAt?: string;
+  locationId: string;
+  locationName: string;
 }
 
 export interface SearchResult {
@@ -37,88 +35,86 @@ export interface SearchResult {
   category?: string;
 }
 
-const CACHE_KEY = 'hamlet-location-data-cache';
+const meetingsByLocation = meetingsData as Record<string, Meeting[]>;
+const projectsByLocation = projectsData as Record<string, Project[]>;
+const agendas: AgendaRecord[] = agendasData as AgendaRecord[];
 
-export function getAllCachedSearchResults(): SearchResult[] {
-  if (typeof window === 'undefined') {
-    return [];
+const locationMap = new Map<string, { name: string; state: string }>();
+locations.forEach((state) => {
+  if (state.type === 'state' && state.children) {
+    state.children.forEach((city) => {
+      locationMap.set(city.id, { name: city.name, state: city.state });
+    });
   }
+});
 
-  const cacheString = window.localStorage.getItem(CACHE_KEY);
-  if (!cacheString) {
-    return [];
+function resolveLocationName(locationId: string, fallback?: string) {
+  const match = locationMap.get(locationId);
+  if (match) {
+    return `${match.name}, ${match.state}`;
   }
+  return fallback || locationId;
+}
 
+export function getAllSearchResults(): SearchResult[] {
   const results: SearchResult[] = [];
 
-  try {
-    const cacheData: Record<string, CachedLocationData> = JSON.parse(cacheString);
+  Object.entries(meetingsByLocation).forEach(([locationId, meetings]) => {
+    const locationName = resolveLocationName(locationId, meetings[0]?.location);
 
-    Object.entries(cacheData).forEach(([locationId, data]) => {
-      const locationInfo = locations
-        .flatMap(state => state.children || [])
-        .find(city => city.id === locationId);
-
-      if (!locationInfo) return;
-
-      const locationName = `${locationInfo.name}, ${locationInfo.state}`;
-
-      if (Array.isArray(data.meetings)) {
-        data.meetings.forEach(meeting => {
-          results.push({
-            id: meeting.id,
-            title: meeting.title,
-            type: 'meeting',
-            location: locationName,
-            locationId,
-            date: meeting.date,
-            time: meeting.time,
-            excerpt: `${meeting.type === 'upcoming' ? 'Upcoming' : 'Past'} meeting scheduled for ${meeting.date} at ${meeting.time}. Click to view full meeting details, agenda, participants, and related documents.`,
-            relevance: 90,
-            status: meeting.type,
-            category: meeting.type === 'upcoming' ? 'Upcoming Meeting' : 'Past Meeting'
-          });
-        });
-      }
-
-      if (Array.isArray(data.projects)) {
-        data.projects.forEach(project => {
-          results.push({
-            id: project.id,
-            title: project.title,
-            type: 'project',
-            location: locationName,
-            locationId,
-            date: project.date,
-            address: project.address,
-            excerpt: `${project.type} project ${project.status ? `(${project.status})` : ''}. ${project.address ? `Located at ${project.address}.` : ''} Review project details, timeline, stakeholders, and documents.`,
-            relevance: 85,
-            status: project.status,
-            category: project.type
-          });
-        });
-      }
-
-      if (Array.isArray(data.agendas)) {
-        data.agendas.forEach(agenda => {
-          results.push({
-            id: agenda.id,
-            title: agenda.title || `${locationInfo.name} Meeting Agenda`,
-            type: 'agenda',
-            location: locationName,
-            locationId,
-            date: agenda.date,
-            time: agenda.time,
-            excerpt: `Meeting agenda for ${agenda.date || 'upcoming meeting'}. ${agenda.matches && agenda.matches.length > 0 ? `Matches found for: ${agenda.matches.map(match => match.label).join(', ')}.` : 'Review agenda items and prepare for the meeting.'}`,
-            relevance: 80,
-            category: 'Agenda'
-          });
-        });
-      }
+    meetings.forEach((meeting) => {
+      results.push({
+        id: meeting.id,
+        title: meeting.title,
+        type: 'meeting',
+        location: locationName,
+        locationId,
+        date: meeting.date,
+        time: meeting.time,
+        excerpt: `${meeting.type === 'upcoming' ? 'Upcoming' : 'Past'} meeting scheduled for ${meeting.date} at ${meeting.time}. Click to view full meeting details, agenda, participants, and related documents.`,
+        relevance: meeting.type === 'upcoming' ? 95 : 70,
+        status: meeting.type,
+        category: meeting.type === 'upcoming' ? 'Upcoming Meeting' : 'Past Meeting',
+      });
     });
-  } catch (error) {
-    console.error('Error parsing cache data:', error);
-  }
+  });
+
+  Object.entries(projectsByLocation).forEach(([locationId, projects]) => {
+    const locationName = resolveLocationName(locationId, projects[0]?.locationName);
+
+    projects.forEach((project) => {
+      results.push({
+        id: project.id,
+        title: project.title,
+        type: 'project',
+        location: locationName,
+        locationId,
+        date: project.date,
+        address: project.address,
+        excerpt: `${project.type} project ${project.status ? `(${project.status})` : ''}. ${project.address ? `Located at ${project.address}.` : ''} Review project details, timeline, stakeholders, and documents.`,
+        relevance: project.status === 'approved' ? 92 : 85,
+        status: project.status,
+        category: project.type,
+      });
+    });
+  });
+
+  agendas.forEach((agenda) => {
+    const locationName = resolveLocationName(agenda.locationId, agenda.locationName);
+
+    results.push({
+      id: agenda.id,
+      title: agenda.title || `${locationName} Meeting Agenda`,
+      type: 'agenda',
+      location: locationName,
+      locationId: agenda.locationId,
+      date: agenda.date,
+      time: agenda.time,
+      excerpt: `Meeting agenda for ${agenda.date || 'upcoming meeting'}. ${agenda.matches && agenda.matches.length > 0 ? `Matches found for: ${agenda.matches.map((match) => match.label).join(', ')}.` : 'Review agenda items and prepare for the meeting.'}`,
+      relevance: 80,
+      category: 'Agenda',
+    });
+  });
 
   return results;
 }

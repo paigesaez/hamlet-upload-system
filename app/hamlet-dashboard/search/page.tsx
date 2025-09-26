@@ -7,7 +7,7 @@ import { useSavedSearches } from '@/hooks/useSavedSearches';
 import Link from 'next/link';
 import PageHeader from '@/components/HamletDashboard/PageHeader';
 import FilterSelect from '@/components/shared/FilterSelect';
-import { SearchResult, getAllCachedSearchResults } from '@/utils/searchCache';
+import { SearchResult, getAllSearchResults } from '@/utils/searchCache';
 
 const typeColors = {
   meeting: 'bg-blue-100 text-blue-800',
@@ -34,6 +34,24 @@ function SearchContent() {
   const [selectedLocation, setSelectedLocation] = useState<string>(locationFromUrl);
   const { saveSearch, savedSearches } = useSavedSearches();
 
+  const activeFilters = useMemo(
+    () => ({
+      ...(selectedType !== 'all' ? { type: selectedType } : {}),
+      ...(selectedLocation !== 'all' ? { location: selectedLocation } : {})
+    }),
+    [selectedType, selectedLocation]
+  );
+
+  const isAlreadySaved = useMemo(
+    () =>
+      savedSearches.some(s =>
+        s.query === query &&
+        (s.filters?.type ?? undefined) === activeFilters.type &&
+        (s.filters?.location ?? undefined) === activeFilters.location
+      ),
+    [savedSearches, query, activeFilters]
+  );
+
   // Get unique locations from all results
   const uniqueLocations = useMemo(() => {
     const locs = new Set(allResults.map(r => r.location));
@@ -42,7 +60,7 @@ function SearchContent() {
 
   // Load all data on mount
   useEffect(() => {
-    const data = getAllCachedSearchResults();
+    const data = getAllSearchResults();
     setAllResults(data);
   }, []);
 
@@ -165,30 +183,14 @@ function SearchContent() {
                 {/* Save Search Button */}
                 <button
                   onClick={() => {
-                    const isAlreadySaved = savedSearches.some(s =>
-                      s.query === query &&
-                      s.filters?.type === selectedType &&
-                      s.filters?.location === selectedLocation
-                    );
                     if (!isAlreadySaved) {
-                      const filters = {
-                        type: selectedType !== 'all' ? selectedType : undefined,
-                        location: selectedLocation !== 'all' ? selectedLocation : undefined
-                      };
-                      saveSearch(query, undefined, filters);
+                      const filtersToSave = Object.keys(activeFilters).length ? activeFilters : undefined;
+                      saveSearch(query, undefined, filtersToSave);
                     }
                   }}
-                  disabled={savedSearches.some(s =>
-                    s.query === query &&
-                    s.filters?.type === selectedType &&
-                    s.filters?.location === selectedLocation
-                  )}
+                  disabled={isAlreadySaved}
                   className={`px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                    savedSearches.some(s =>
-                      s.query === query &&
-                      s.filters?.type === selectedType &&
-                      s.filters?.location === selectedLocation
-                    )
+                    isAlreadySaved
                       ? 'bg-gray-400 cursor-not-allowed text-gray-200'
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
@@ -197,11 +199,7 @@ function SearchContent() {
                     <path d="M12.667 1.333H3.333c-.733 0-1.333.6-1.333 1.334v10.666c0 .734.6 1.334 1.333 1.334H12.667c.733 0 1.333-.6 1.333-1.334V2.667c0-.734-.6-1.334-1.333-1.334z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M5.333 7.333L7.333 9.333L10.667 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  {savedSearches.some(s =>
-                    s.query === query &&
-                    s.filters?.type === selectedType &&
-                    s.filters?.location === selectedLocation
-                  ) ? 'Saved' : 'Save'}
+                  {isAlreadySaved ? 'Saved' : 'Save'}
                 </button>
               </div>
 

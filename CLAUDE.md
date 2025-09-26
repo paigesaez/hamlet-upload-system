@@ -146,10 +146,10 @@ Read COMPONENTS.md  # Complete component library documentation
 1. **Global Search** (Top nav) - Searches content across all locations
 2. **Location Filter** (Sidebar) - Filters location tree only
 3. **Saved Searches** - Saves query + filters (type, location), immutable like Google
-4. **Data Source** - Pulls from localStorage cache (hundreds of items from generated mock data)
+4. **Data Source** - Loads from JSON fixtures in `data/mock-data` for now (easy to edit while iterating)
 
 ### 3. DATA STORAGE ARCHITECTURE:
-- **localStorage** for permanent mock data (`hamlet-location-data-cache`)
+- **JSON fixtures** under `data/mock-data` (locations, meetings, projects, agendas)
 - Data generated once per location and cached forever
 - Includes meetings, projects, agendas with realistic variety
 - Search pulls from ALL cached location data

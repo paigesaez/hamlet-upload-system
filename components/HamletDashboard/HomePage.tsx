@@ -5,8 +5,7 @@ import { Calendar, MapPin, ChevronRight } from 'lucide-react';
 import PageHeader from './PageHeader';
 import TabNavigation, { TabType } from './TabNavigation';
 import FilterSelect from '../shared/FilterSelect';
-import { SearchResult, getAllCachedSearchResults } from '@/utils/searchCache';
-import { initializeSearchCache } from '@/utils/initializeCache';
+import { SearchResult, getAllSearchResults } from '@/utils/searchCache';
 
 interface HomePageProps {
   sidebarCollapsed?: boolean;
@@ -105,10 +104,7 @@ export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
   }, []);
 
   useEffect(() => {
-    // Initialize the cache on first load
-    initializeSearchCache();
-
-    const allResults = getAllCachedSearchResults();
+    const allResults = getAllSearchResults();
 
     // Load projects
     const cachedProjects = allResults.filter(result => result.type === 'project');

@@ -1,0 +1,68 @@
+{
+  "irvine": [
+    {
+      "id": "irvine-m1",
+      "date": "Wed 3/1",
+      "time": "3:00PM",
+      "title": "Irvine City Council",
+      "location": "Irvine, CA",
+      "locationId": "irvine",
+      "type": "upcoming",
+      "hasMatches": true
+    },
+    {
+      "id": "irvine-m2",
+      "date": "Mon 3/9",
+      "time": "3:00PM",
+      "title": "Irvine Planning Commission",
+      "location": "Irvine, CA",
+      "locationId": "irvine",
+      "type": "upcoming",
+      "hasMatches": false
+    },
+    {
+      "id": "irvine-m3",
+      "date": "Mon 2/12",
+      "time": "4:00PM",
+      "title": "Irvine Zoning Board",
+      "location": "Irvine, CA",
+      "locationId": "irvine",
+      "type": "past",
+      "hasMatches": false
+    }
+  ],
+  "houston": [
+    {
+      "id": "houston-m1",
+      "date": "Wed 3/15",
+      "time": "2:00PM",
+      "title": "Houston City Council",
+      "location": "Houston, TX",
+      "locationId": "houston",
+      "type": "upcoming",
+      "hasMatches": true
+    },
+    {
+      "id": "houston-m2",
+      "date": "Mon 3/22",
+      "time": "4:00PM",
+      "title": "Houston Planning Commission",
+      "location": "Houston, TX",
+      "locationId": "houston",
+      "type": "upcoming",
+      "hasMatches": false
+    }
+  ],
+  "brea": [
+    {
+      "id": "brea-m1",
+      "date": "Tue 3/5",
+      "time": "6:00PM",
+      "title": "Brea City Council",
+      "location": "Brea, CA",
+      "locationId": "brea",
+      "type": "upcoming",
+      "hasMatches": true
+    }
+  ]
+}

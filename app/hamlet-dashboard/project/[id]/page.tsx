@@ -2,8 +2,10 @@
 
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Calendar, MapPin, Building, FileText, ChevronLeft, Download, Share2, Edit, Users } from 'lucide-react';
+import { Calendar, MapPin, Building, FileText, ChevronRight, Download, Share2, Edit, Users } from 'lucide-react';
+import Link from 'next/link';
 import StandardLayout from '@/components/HamletDashboard/StandardLayout';
+import { getLocationInfo, extractLocationIdFromId } from '@/utils/locationHelpers';
 
 interface ProjectDocument {
   name: string;
@@ -82,19 +84,30 @@ export default function ProjectDetailPage() {
   // Get project data (in production, this would be an API call)
   const project: Project = mockProjectData[projectId] || mockProjectData['1'];
 
+  // Extract location information from projectId
+  const locationId = extractLocationIdFromId(projectId);
+  const locationInfo = getLocationInfo(locationId);
+  const locationName = locationInfo?.name || locationId.charAt(0).toUpperCase() + locationId.slice(1);
+  const locationFullName = locationInfo?.fullName || locationName;
+
   return (
     <StandardLayout>
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ChevronLeft size={20} />
-              <span>Back</span>
-            </button>
+            {/* Breadcrumbs */}
+            <nav className="flex items-center gap-2 text-sm">
+              <Link href="/hamlet-dashboard" className="text-gray-600 hover:text-gray-900">
+                Dashboard
+              </Link>
+              <ChevronRight size={16} className="text-gray-400" />
+              <Link href={`/hamlet-dashboard/location/${locationId}?tab=projects`} className="text-gray-600 hover:text-gray-900">
+                {locationFullName} Projects
+              </Link>
+              <ChevronRight size={16} className="text-gray-400" />
+              <span className="text-gray-900 font-medium">Project Detail</span>
+            </nav>
             <div className="flex items-center gap-3">
               <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
                 <Share2 size={20} />

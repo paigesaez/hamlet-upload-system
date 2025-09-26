@@ -3,7 +3,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Calendar, MapPin, Clock, ChevronRight, FileText } from 'lucide-react';
 import { getMeetingsForLocation, Meeting, getProjectsForLocation, Project } from './mockData';
-import { useLocationData } from '@/hooks/useLocationData';
 import PageHeader from './PageHeader';
 import TabNavigation, { TabType } from './TabNavigation';
 import FilterSelect from '@/components/shared/FilterSelect';

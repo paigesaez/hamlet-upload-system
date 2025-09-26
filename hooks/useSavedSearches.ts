@@ -30,17 +30,30 @@ export function useSavedSearches() {
 
   // Save a new search with filters
   const saveSearch = (query: string, name?: string, filters?: { type?: string; location?: string }) => {
+    const sanitizedFilters = filters
+      ? {
+          ...(filters.type ? { type: filters.type } : {}),
+          ...(filters.location ? { location: filters.location } : {})
+        }
+      : undefined;
+
+    const filtersForSave = sanitizedFilters && Object.keys(sanitizedFilters).length > 0
+      ? sanitizedFilters
+      : undefined;
+
     const newSearch: SavedSearch = {
       id: Date.now().toString(),
       query,
       name: name || query,
       createdAt: new Date().toISOString(),
-      filters
+      filters: filtersForSave
     };
 
-    const updated = [...savedSearches, newSearch];
-    setSavedSearches(updated);
-    localStorage.setItem('hamlet-saved-searches', JSON.stringify(updated));
+    setSavedSearches(prev => {
+      const updated = [...prev, newSearch];
+      localStorage.setItem('hamlet-saved-searches', JSON.stringify(updated));
+      return updated;
+    });
 
     return newSearch;
   };
