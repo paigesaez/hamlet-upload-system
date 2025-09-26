@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export interface SavedSearch {
   id: string;
@@ -13,23 +13,55 @@ export interface SavedSearch {
   };
 }
 
-export function useSavedSearches() {
-  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
+type SavedSearchListener = (searches: SavedSearch[]) => void;
 
-  // Load saved searches from localStorage on mount
+const STORAGE_KEY = 'hamlet-saved-searches';
+let cachedSearches: SavedSearch[] | null = null;
+const listeners = new Set<SavedSearchListener>();
+
+function readSavedSearches(): SavedSearch[] {
+  if (typeof window === 'undefined') {
+    return cachedSearches ?? [];
+  }
+
+  if (cachedSearches) {
+    return cachedSearches;
+  }
+
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    cachedSearches = stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Error loading saved searches:', error);
+    cachedSearches = [];
+  }
+
+  return cachedSearches;
+}
+
+function persistSavedSearches(searches: SavedSearch[]) {
+  cachedSearches = searches;
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(searches));
+  }
+  listeners.forEach((listener) => listener(searches));
+}
+
+export function useSavedSearches() {
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(() => readSavedSearches());
+
   useEffect(() => {
-    const stored = localStorage.getItem('hamlet-saved-searches');
-    if (stored) {
-      try {
-        setSavedSearches(JSON.parse(stored));
-      } catch (e) {
-        console.error('Error loading saved searches:', e);
-      }
-    }
+    const listener: SavedSearchListener = (searches) => {
+      setSavedSearches(searches);
+    };
+
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
   }, []);
 
-  // Save a new search with filters
-  const saveSearch = (query: string, name?: string, filters?: { type?: string; location?: string }) => {
+  const saveSearch = useCallback((query: string, name?: string, filters?: { type?: string; location?: string }) => {
     const sanitizedFilters = filters
       ? {
           ...(filters.type ? { type: filters.type } : {}),
@@ -41,6 +73,7 @@ export function useSavedSearches() {
       ? sanitizedFilters
       : undefined;
 
+    const existing = readSavedSearches();
     const newSearch: SavedSearch = {
       id: Date.now().toString(),
       query,
@@ -49,36 +82,29 @@ export function useSavedSearches() {
       filters: filtersForSave
     };
 
-    setSavedSearches(prev => {
-      const updated = [...prev, newSearch];
-      localStorage.setItem('hamlet-saved-searches', JSON.stringify(updated));
-      return updated;
-    });
+    const updated = [...existing, newSearch];
+    persistSavedSearches(updated);
 
     return newSearch;
-  };
+  }, []);
 
-  // Remove a saved search
-  const removeSearch = (id: string) => {
-    const updated = savedSearches.filter(s => s.id !== id);
-    setSavedSearches(updated);
-    localStorage.setItem('hamlet-saved-searches', JSON.stringify(updated));
-  };
+  const removeSearch = useCallback((id: string) => {
+    const existing = readSavedSearches();
+    const updated = existing.filter(s => s.id !== id);
+    persistSavedSearches(updated);
+  }, []);
 
-  // Update a saved search name
-  const updateSearch = (id: string, newName: string) => {
-    const updated = savedSearches.map(s =>
+  const updateSearch = useCallback((id: string, newName: string) => {
+    const existing = readSavedSearches();
+    const updated = existing.map(s =>
       s.id === id ? { ...s, name: newName } : s
     );
-    setSavedSearches(updated);
-    localStorage.setItem('hamlet-saved-searches', JSON.stringify(updated));
-  };
+    persistSavedSearches(updated);
+  }, []);
 
-  // Clear all saved searches
-  const clearSearches = () => {
-    setSavedSearches([]);
-    localStorage.removeItem('hamlet-saved-searches');
-  };
+  const clearSearches = useCallback(() => {
+    persistSavedSearches([]);
+  }, []);
 
   return {
     savedSearches,
