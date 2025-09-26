@@ -7,6 +7,10 @@ export interface SavedSearch {
   query: string;
   name: string;
   createdAt: string;
+  filters?: {
+    type?: string;
+    location?: string;
+  };
 }
 
 export function useSavedSearches() {
@@ -24,13 +28,14 @@ export function useSavedSearches() {
     }
   }, []);
 
-  // Save a new search
-  const saveSearch = (query: string, name?: string) => {
+  // Save a new search with filters
+  const saveSearch = (query: string, name?: string, filters?: { type?: string; location?: string }) => {
     const newSearch: SavedSearch = {
       id: Date.now().toString(),
       query,
       name: name || query,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      filters
     };
 
     const updated = [...savedSearches, newSearch];
@@ -47,6 +52,15 @@ export function useSavedSearches() {
     localStorage.setItem('hamlet-saved-searches', JSON.stringify(updated));
   };
 
+  // Update a saved search name
+  const updateSearch = (id: string, newName: string) => {
+    const updated = savedSearches.map(s =>
+      s.id === id ? { ...s, name: newName } : s
+    );
+    setSavedSearches(updated);
+    localStorage.setItem('hamlet-saved-searches', JSON.stringify(updated));
+  };
+
   // Clear all saved searches
   const clearSearches = () => {
     setSavedSearches([]);
@@ -57,6 +71,7 @@ export function useSavedSearches() {
     savedSearches,
     saveSearch,
     removeSearch,
+    updateSearch,
     clearSearches
   };
 }

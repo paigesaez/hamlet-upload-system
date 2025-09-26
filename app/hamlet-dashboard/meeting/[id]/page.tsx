@@ -2,7 +2,9 @@
 
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Calendar, Clock, MapPin, Users, FileText, ChevronLeft, Download, Share2, Edit } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, FileText, ChevronRight, Download, Share2, Edit } from 'lucide-react';
+import Link from 'next/link';
+import StandardLayout from '@/components/HamletDashboard/StandardLayout';
 
 interface Participant {
   name: string;
@@ -66,24 +68,50 @@ export default function MeetingDetailPage() {
   // Get meeting data (in production, this would be an API call)
   const meeting: Meeting = mockMeetingData[meetingId] || mockMeetingData['1'];
 
+  // Extract location from meetingId (e.g., 'mesa-m1' -> 'mesa')
+  const locationId = meetingId.split('-')[0];
+  const locationName = locationId.charAt(0).toUpperCase() + locationId.slice(1);
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <StandardLayout>
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between mb-4">
-            <button
-              onClick={() => router.back()}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ChevronLeft size={20} />
-              <span>Back</span>
-            </button>
+            {/* Breadcrumbs */}
+            <nav className="flex items-center gap-2 text-sm">
+              <Link href="/hamlet-dashboard" className="text-gray-600 hover:text-gray-900">
+                Dashboard
+              </Link>
+              <ChevronRight size={16} className="text-gray-400" />
+              <Link href={`/hamlet-dashboard/location/${locationId}?tab=meetings`} className="text-gray-600 hover:text-gray-900">
+                {locationName} Meetings
+              </Link>
+              <ChevronRight size={16} className="text-gray-400" />
+              <span className="text-gray-900 font-medium">Meeting Detail</span>
+            </nav>
             <div className="flex items-center gap-3">
-              <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+              <button
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: meeting.title,
+                      text: `Meeting: ${meeting.title} on ${meeting.date}`,
+                      url: window.location.href,
+                    });
+                  } else {
+                    navigator.clipboard.writeText(window.location.href);
+                    alert('Link copied to clipboard!');
+                  }
+                }}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
                 <Share2 size={20} />
               </button>
-              <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+              <button
+                onClick={() => alert('Edit functionality would be here')}
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              >
                 <Edit size={20} />
               </button>
             </div>
@@ -141,7 +169,7 @@ export default function MeetingDetailPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Documents</h2>
               <div className="space-y-3">
                 {meeting.documents.map((doc, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors group cursor-pointer">
+                  <div key={index} onClick={() => alert(`Download ${doc.name} (${doc.size})`)} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors group cursor-pointer">
                     <div className="flex items-center gap-3">
                       <FileText size={20} className="text-gray-400" />
                       <div>
@@ -185,13 +213,22 @@ export default function MeetingDetailPage() {
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
               <div className="space-y-3">
-                <button className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <button
+                  onClick={() => alert('Join meeting functionality would open video conference')}
+                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
                   Join Meeting
                 </button>
-                <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <button
+                  onClick={() => alert('Calendar integration would be here')}
+                  className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
                   Add to Calendar
                 </button>
-                <button className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <button
+                  onClick={() => alert('Meeting minutes document would open here')}
+                  className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
                   View Minutes
                 </button>
               </div>
@@ -199,6 +236,6 @@ export default function MeetingDetailPage() {
           </div>
         </div>
       </div>
-    </div>
+    </StandardLayout>
   );
 }

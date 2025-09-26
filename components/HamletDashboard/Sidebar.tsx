@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronRight, Search, Menu, X, Lock, LogOut, HelpCircle, ChevronLeft } from 'lucide-react';
+import { ChevronDown, ChevronRight, Search, Menu, X, Lock, LogOut, HelpCircle, ChevronLeft, Trash2 } from 'lucide-react';
 import { locations } from './mockData';
+import { useSavedSearches } from '@/hooks/useSavedSearches';
 
 interface SidebarProps {
   selectedLocation: string;
@@ -20,6 +21,7 @@ export default function Sidebar({ selectedLocation, onLocationSelect, onLogoClic
   const [expandedStates, setExpandedStates] = useState<Set<string>>(new Set(['ca']));
   const [locationsExpanded, setLocationsExpanded] = useState(!isSearchPage); // Collapsed on search page
   const [savedSearchesExpanded, setSavedSearchesExpanded] = useState(true); // Always expanded by default
+  const { savedSearches, removeSearch } = useSavedSearches();
 
   // Filter locations based on search query
   const filteredLocations = useMemo(() => {
@@ -111,43 +113,45 @@ export default function Sidebar({ selectedLocation, onLocationSelect, onLogoClic
             {savedSearchesExpanded && (
               <div className="space-y-2">
                 {/* Show saved searches if they exist, otherwise show prompt */}
-                {isSearchPage && !searchQuery ? (
+                {savedSearches.length === 0 ? (
                   <div className="px-3 py-4 text-sm text-gray-400 italic">
                     <p className="mb-2">No saved searches yet.</p>
                     <p className="text-xs">Use the global search above to find content, then save your frequent searches here for quick access.</p>
                   </div>
                 ) : (
                   <>
-                    <a
-                      href="/hamlet-dashboard/search?q=budget"
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a3f5f] rounded-lg transition-colors"
-                    >
-                      <Search size={14} className="text-gray-400" />
-                      <span>Budget Reviews</span>
-                    </a>
-                    <a
-                      href="/hamlet-dashboard/search?q=infrastructure"
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a3f5f] rounded-lg transition-colors"
-                    >
-                      <Search size={14} className="text-gray-400" />
-                      <span>Infrastructure</span>
-                    </a>
-                    <a
-                      href="/hamlet-dashboard/search?q=meeting"
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a3f5f] rounded-lg transition-colors"
-                    >
-                      <Search size={14} className="text-gray-400" />
-                      <span>Recent Meetings</span>
-                    </a>
-                    {searchQuery && (
-                      <a
-                        href={`/hamlet-dashboard/search?q=${encodeURIComponent(searchQuery)}`}
-                        className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                      >
-                        <Search size={14} />
-                        <span>Current: &quot;{searchQuery}&quot;</span>
-                      </a>
-                    )}
+                    {savedSearches.map(search => {
+                      // Build URL with filters
+                      const params = new URLSearchParams();
+                      params.set('q', search.query);
+                      if (search.filters?.type && search.filters.type !== 'all') {
+                        params.set('type', search.filters.type);
+                      }
+                      if (search.filters?.location && search.filters.location !== 'all') {
+                        params.set('location', search.filters.location);
+                      }
+
+                      return (
+                        <div key={search.id} className="group flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a3f5f] rounded-lg transition-colors">
+                          <a
+                            href={`/hamlet-dashboard/search?${params.toString()}`}
+                            className="flex items-center gap-2 flex-1"
+                          >
+                            <Search size={14} className="text-gray-400" />
+                            <span className="truncate">{search.name}</span>
+                          </a>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              removeSearch(search.id);
+                            }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5"
+                          >
+                            <Trash2 size={14} className="text-gray-400 hover:text-red-400" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </>
                 )}
               </div>

@@ -122,29 +122,113 @@ Currently using "lightweight" approach:
 - Error logs: Browser console in development
 - Manual monitoring script: `./scripts/monitor.sh`
 
-## CRITICAL REMINDER FOR CLAUDE
+## CRITICAL REMINDERS FOR CLAUDE
 
-### COMPONENT REUSABILITY - ALWAYS CHECK FIRST:
-- **Before creating ANY new component**: Search for existing components that do the same thing
-- **Reuse global components**: PageHeader, GlobalSearch, TabNavigation, etc.
-- **Don't duplicate designs**: Use existing components for consistent UI
-- Example: PageHeader is used across Dashboard, HomePage, and Search pages - DON'T recreate it
+### 1. COMPONENT REUSABILITY - MANDATORY FIRST PASS:
+**BEFORE writing any new code:**
+```bash
+# ALWAYS run these first:
+Grep -pattern "similar-functionality" -type "tsx"
+Glob "**/components/**/*.tsx"
+Read COMPONENTS.md  # Complete component library documentation
+```
 
-### SEARCH FUNCTIONALITY - DO NOT CONFUSE THESE:
-1. **GLOBAL SEARCH** = Top navigation bar, searches CONTENT across all locations, opens new tab
-2. **LOCATION FILTER** = Sidebar search box, filters location tree only, no navigation
+**Reusable components available:**
+- `FilterSelect` - Use for ALL dropdowns (consistent styling)
+- `PageHeader` - Use for ALL page headers
+- `GlobalSearch` - Top nav search bar
+- `TabNavigation` - Tab switchers
+- `ErrorBoundary` - Error handling wrapper
 
-These are COMPLETELY DIFFERENT features. Stop confusing them.
+**Extract patterns immediately** - If you see something twice, make it a component
 
-### ALWAYS CHECK YOUR WORK:
-1. After making changes → Check site still loads (curl status check)
-2. After "completing" a feature → Actually test it works
-3. Before saying "done" → Verify with: `curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/hamlet-dashboard`
-4. If you see errors → Check logs IMMEDIATELY, don't assume it's fine
-5. Every significant change → Test it works, no exceptions
+### 2. SEARCH FUNCTIONALITY - CURRENT IMPLEMENTATION:
+1. **Global Search** (Top nav) - Searches content across all locations
+2. **Location Filter** (Sidebar) - Filters location tree only
+3. **Saved Searches** - Saves query + filters (type, location), immutable like Google
+4. **Data Source** - Pulls from localStorage cache (hundreds of items from generated mock data)
 
-The user caught me not doing this basic verification when the site crashed and I didn't notice. This is fundamental - CHECK YOUR WORK.
+### 3. DATA STORAGE ARCHITECTURE:
+- **localStorage** for permanent mock data (`hamlet-location-data-cache`)
+- Data generated once per location and cached forever
+- Includes meetings, projects, agendas with realistic variety
+- Search pulls from ALL cached location data
+
+### 4. UI/UX PATTERNS:
+**Filters:**
+- Horizontal inline for search page (responsive)
+- Vertical with labels for dashboard
+- Always use `FilterSelect` component
+
+**Buttons:**
+- Primary: `bg-blue-600 hover:bg-blue-700 text-white`
+- Secondary: `border border-gray-300 text-gray-700 hover:bg-gray-50`
+- Text: `text-blue-600 hover:text-blue-700`
+
+**Spacing:**
+- Use multiples of 4 (p-2, p-4, p-6)
+- Standard card: `bg-white rounded-lg p-6 border border-gray-200`
+
+### 5. NAVIGATION PATTERNS:
+- **Breadcrumbs** for detail pages (NOT back buttons)
+- **URL params** for state (tab, filters)
+- **In-page routing** for meetings/projects (not new tabs)
+
+### 6. ALWAYS CHECK YOUR WORK:
+1. After changes → `curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/hamlet-dashboard`
+2. Test the actual feature, not just that it compiles
+3. Check logs if anything seems wrong
+4. Verify with real user interaction
+
+### 7. DEVELOPMENT APPROACH:
+1. **Search first** - Check what exists before creating
+2. **Reuse first** - Extend existing components
+3. **Extract early** - Don't wait for third repetition
+4. **Think system-wide** - Consider entire app, not just current page
+5. **Document always** - Update COMPONENTS.md with new patterns
+
+The user caught me:
+- Not reusing components (creating new filters instead of using existing patterns)
+- Not checking my work (site crashed and I didn't notice)
+- Building page-specific solutions instead of system-wide components
+
+This is fundamental - REUSE, CHECK, DOCUMENT.
 
 ## Last Updated
 September 25, 2025 - Dashboard complete with all features, error boundary added, health monitoring implemented
 **Lesson learned**: Always verify the site is actually working after changes
+- always use descriptive variables
+- What They Mean:
+
+  These tags represent keyword matches or topics of 
+  interest found in that agenda. The number in
+  parentheses indicates how many times that topic
+  appears in the agenda items.
+
+  For example:
+  - Energy (2) = The word "energy" or energy-related
+  topics appear 2 times in this meeting's agenda
+  - Data Center (1) = Data center topics are mentioned
+  once
+
+  This is a search/filtering feature that helps users
+  quickly identify which meetings contain discussions
+  about topics they care about. If someone is interested
+   in energy policy or data center development, they can
+   quickly spot relevant meetings by these tags.
+
+  The different colors (orange for Energy, teal for Data
+   Center) help visually distinguish between different
+  topic categories at a glance.
+
+  In a real implementation, these would likely be:
+  1. Generated by scanning agenda documents for keywords
+  2. Used for filtering meetings by topic
+  3. Searchable to find all meetings discussing specific
+   subjects
+  4. Potentially customizable based on user interests
+
+  This is similar to how modern meeting management
+  systems highlight relevant topics to help stakeholders
+   quickly identify meetings they need to attend or
+  review.

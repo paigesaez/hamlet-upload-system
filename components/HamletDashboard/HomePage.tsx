@@ -1,71 +1,87 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import { Calendar, MapPin, ChevronRight, ChevronDown } from 'lucide-react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { Calendar, MapPin, ChevronRight } from 'lucide-react';
 import PageHeader from './PageHeader';
 import TabNavigation, { TabType } from './TabNavigation';
-
-interface Project {
-  id: string;
-  type: 'City Council' | 'Planning Commission';
-  title: string;
-  date: string;
-  location: string;
-  address?: string;
-}
-
-const mockProjects: Project[] = [
-  {
-    id: '1',
-    type: 'City Council',
-    title: 'River Grove Mobile Home Park at 8440 U.S. Highway 1',
-    date: '2025-09-04',
-    location: 'Brevard County, Florida',
-    address: '8440 U.S. Highway 1'
-  },
-  {
-    id: '2',
-    type: 'Planning Commission',
-    title: 'Van Greenby Road Tree Hearing',
-    date: '2025-09-04',
-    location: 'Lowell, Massachusetts'
-  },
-  {
-    id: '3',
-    type: 'Planning Commission',
-    title: 'Metropolitan Branch Trail Upgrades',
-    date: '2025-09-04',
-    location: 'Montgomery County, Maryland'
-  },
-  {
-    id: '4',
-    type: 'City Council',
-    title: 'Flex Warehouse at 4150 Highway 1',
-    date: '2025-09-04',
-    location: 'Brevard County, Florida',
-    address: '4150 Highway 1'
-  },
-  {
-    id: '5',
-    type: 'Planning Commission',
-    title: '7025 Strathmore Street',
-    date: '2025-09-04',
-    location: 'Chevy Chase, Maryland'
-  }
-];
+import FilterSelect from '../shared/FilterSelect';
+import { SearchResult, getAllCachedSearchResults } from '@/utils/searchCache';
 
 interface HomePageProps {
   sidebarCollapsed?: boolean;
 }
+
+const fallbackProjects: SearchResult[] = [
+  {
+    id: 'fallback-1',
+    title: 'River Grove Mobile Home Park at 8440 U.S. Highway 1',
+    type: 'project',
+    category: 'City Council',
+    date: '2025-09-04',
+    location: 'Brevard County, Florida',
+    locationId: 'fallback-fl-1',
+    address: '8440 U.S. Highway 1',
+    excerpt: 'Proposal for the development of a new mobile home park community featuring 150 units with modern amenities.',
+    relevance: 85,
+    status: 'under-review'
+  },
+  {
+    id: 'fallback-2',
+    title: 'Van Greenby Road Tree Hearing',
+    type: 'project',
+    category: 'Planning Commission',
+    date: '2025-09-04',
+    location: 'Lowell, Massachusetts',
+    locationId: 'fallback-ma-1',
+    excerpt: 'Planning commission hearing to review the preservation plan for Van Greenby Road tree canopy.',
+    relevance: 80
+  },
+  {
+    id: 'fallback-3',
+    title: 'Metropolitan Branch Trail Upgrades',
+    type: 'project',
+    category: 'Planning Commission',
+    date: '2025-09-04',
+    location: 'Montgomery County, Maryland',
+    locationId: 'fallback-md-1',
+    excerpt: 'Trail upgrades focused on lighting, safety improvements, and expanded bike lanes along the Metropolitan Branch corridor.',
+    relevance: 78
+  },
+  {
+    id: 'fallback-4',
+    title: 'Flex Warehouse at 4150 Highway 1',
+    type: 'project',
+    category: 'City Council',
+    date: '2025-09-04',
+    location: 'Brevard County, Florida',
+    locationId: 'fallback-fl-2',
+    address: '4150 Highway 1',
+    excerpt: 'Proposal to convert an existing structure into a flexible warehouse and light industrial use facility.',
+    relevance: 75,
+    status: 'pending'
+  },
+  {
+    id: 'fallback-5',
+    title: '7025 Strathmore Street',
+    type: 'project',
+    category: 'Planning Commission',
+    date: '2025-09-04',
+    location: 'Chevy Chase, Maryland',
+    locationId: 'fallback-md-2',
+    excerpt: 'Review of a mixed-use infill development with street-level retail and 48 residential units.',
+    relevance: 74
+  }
+];
 
 export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<TabType>('projects');
   const [locationFilter, setLocationFilter] = useState('all');
   const [yearFilter, setYearFilter] = useState('all');
   const [bodyFilter, setBodyFilter] = useState('all');
+  const [projects, setProjects] = useState<SearchResult[]>(fallbackProjects);
+  const [filteredProjects, setFilteredProjects] = useState<SearchResult[]>(fallbackProjects);
 
   const handleProjectClick = useCallback((projectId: string) => {
-    // Open project detail page in new tab
     window.open(`/hamlet-dashboard/project/${projectId}`, '_blank');
   }, []);
 
@@ -75,7 +91,51 @@ export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
     setBodyFilter('all');
   }, []);
 
-  const renderProjectCard = (project: Project) => (
+  useEffect(() => {
+    const cachedProjects = getAllCachedSearchResults().filter(result => result.type === 'project');
+    if (cachedProjects.length > 0) {
+      const sorted = cachedProjects.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      setProjects(sorted);
+      setFilteredProjects(sorted);
+    }
+  }, []);
+
+  useEffect(() => {
+    const next = projects.filter(project => {
+      const matchesLocation = locationFilter === 'all' || project.location === locationFilter;
+      const matchesYear = yearFilter === 'all' || (project.date && project.date.startsWith(yearFilter));
+      const matchesBody = bodyFilter === 'all' || project.category === bodyFilter;
+      return matchesLocation && matchesYear && matchesBody;
+    });
+
+    const sorted = next.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    setFilteredProjects(sorted);
+  }, [projects, locationFilter, yearFilter, bodyFilter]);
+
+  const locationOptions = useMemo(() => {
+    const uniques = new Set(projects.map(project => project.location).filter(Boolean));
+    return Array.from(uniques).sort();
+  }, [projects]);
+
+  const yearOptions = useMemo(() => {
+    const uniques = new Set(
+      projects
+        .map(project => project.date?.slice(0, 4))
+        .filter((year): year is string => Boolean(year))
+    );
+    return Array.from(uniques).sort((a, b) => Number(b) - Number(a));
+  }, [projects]);
+
+  const bodyOptions = useMemo(() => {
+    const uniques = new Set(
+      projects
+        .map(project => project.category)
+        .filter((category): category is string => Boolean(category))
+    );
+    return Array.from(uniques).sort();
+  }, [projects]);
+
+  const renderProjectCard = (project: SearchResult) => (
     <div
       key={project.id}
       onClick={() => handleProjectClick(project.id)}
@@ -84,7 +144,7 @@ export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <span className="text-xs text-gray-500 font-medium">
-            {project.type}
+            {project.category || 'Project'}
           </span>
           <h3 className="text-base font-semibold text-gray-900 mt-1 mb-3 group-hover:text-blue-600 transition-colors">
             {project.title}
@@ -98,7 +158,18 @@ export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
               <MapPin size={14} className="text-gray-400" />
               <span>{project.location}</span>
             </div>
+            {project.status && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
+                {project.status.replace(/-/g, ' ')}
+              </span>
+            )}
           </div>
+          {project.address && (
+            <p className="text-sm text-gray-500 mt-2">{project.address}</p>
+          )}
+          {project.excerpt && (
+            <p className="text-sm text-gray-500 mt-3 line-clamp-2">{project.excerpt}</p>
+          )}
         </div>
         <ChevronRight size={20} className="text-gray-400 mt-1 group-hover:text-gray-600 transition-colors" />
       </div>
@@ -114,63 +185,46 @@ export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Content Area */}
-      <div className="px-8 py-6">
+      <div className={`px-8 py-6 ${sidebarCollapsed ? 'lg:pl-24' : ''}`}>
         {activeTab === 'projects' ? (
           <>
             {/* Section Header */}
             <h2 className="text-xl font-bold text-gray-900 mb-5">Recent Projects</h2>
 
             {/* Filters */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">Location</label>
-                <div className="relative">
-                  <select
-                    value={locationFilter}
-                    onChange={(e) => setLocationFilter(e.target.value)}
-                    className="appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="all">All locations</option>
-                    <option value="florida">Florida</option>
-                    <option value="massachusetts">Massachusetts</option>
-                    <option value="maryland">Maryland</option>
-                  </select>
-                  <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
+            <div className="flex flex-wrap items-center gap-4 mb-6">
+              <FilterSelect
+                label="Location"
+                value={locationFilter}
+                onChange={setLocationFilter}
+                options={[
+                  { value: 'all', label: 'All locations' },
+                  ...locationOptions.map(location => ({ value: location, label: location }))
+                ]}
+                className="w-56"
+              />
 
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">Year</label>
-                <div className="relative">
-                  <select
-                    value={yearFilter}
-                    onChange={(e) => setYearFilter(e.target.value)}
-                    className="appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="all">All years</option>
-                    <option value="2025">2025</option>
-                    <option value="2024">2024</option>
-                    <option value="2023">2023</option>
-                  </select>
-                  <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
+              <FilterSelect
+                label="Year"
+                value={yearFilter}
+                onChange={setYearFilter}
+                options={[
+                  { value: 'all', label: 'All years' },
+                  ...yearOptions.map(year => ({ value: year, label: year }))
+                ]}
+                className="w-36"
+              />
 
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700">Governing Body:</label>
-                <div className="relative">
-                  <select
-                    value={bodyFilter}
-                    onChange={(e) => setBodyFilter(e.target.value)}
-                    className="appearance-none bg-white border border-gray-300 rounded-md px-4 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="all">All bodies</option>
-                    <option value="city-council">City Council</option>
-                    <option value="planning">Planning Commission</option>
-                  </select>
-                  <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
+              <FilterSelect
+                label="Governing Body"
+                value={bodyFilter}
+                onChange={setBodyFilter}
+                options={[
+                  { value: 'all', label: 'All bodies' },
+                  ...bodyOptions.map(body => ({ value: body, label: body }))
+                ]}
+                className="w-48"
+              />
 
               {(locationFilter !== 'all' || yearFilter !== 'all' || bodyFilter !== 'all') && (
                 <button
@@ -184,7 +238,13 @@ export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
 
             {/* Project Cards */}
             <div className="space-y-3">
-              {mockProjects.map(renderProjectCard)}
+              {filteredProjects.length > 0 ? (
+                filteredProjects.map(renderProjectCard)
+              ) : (
+                <div className="bg-white border border-dashed border-gray-300 rounded-lg p-6 text-center text-sm text-gray-500">
+                  No projects match the selected filters yet.
+                </div>
+              )}
             </div>
           </>
         ) : activeTab === 'meetings' ? (

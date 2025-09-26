@@ -6,6 +6,7 @@ import { getMeetingsForLocation, Meeting, getProjectsForLocation, Project } from
 import { useLocationData } from '@/hooks/useLocationData';
 import PageHeader from './PageHeader';
 import TabNavigation, { TabType } from './TabNavigation';
+import FilterSelect from '@/components/shared/FilterSelect';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 interface DashboardProps {
@@ -23,6 +24,8 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedLocation, locationName, s
   // Initialize tab from URL or default to 'meetings'
   const tabFromUrl = searchParams.get('tab') as TabType;
   const [activeTab, setActiveTab] = useState<TabType>(tabFromUrl || 'meetings');
+  const [selectedYear, setSelectedYear] = useState<string>('2024');
+  const [selectedGoverningBody, setSelectedGoverningBody] = useState<string>('all');
 
   // Update tab when URL changes
   useEffect(() => {
@@ -45,9 +48,9 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedLocation, locationName, s
   }, [meetings]);
 
   const handleMeetingClick = useCallback((meetingId: string) => {
-    // Open meeting detail page in new tab
-    window.open(`/hamlet-dashboard/meeting/${meetingId}`, '_blank');
-  }, []);
+    // Navigate to meeting detail page
+    router.push(`/hamlet-dashboard/meeting/${meetingId}`);
+  }, [router]);
 
   const renderMeetingsContent = () => {
     if (!selectedLocation) {
@@ -67,37 +70,70 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedLocation, locationName, s
     }
 
     return (
-      <div className="divide-y divide-gray-200">
-        {meetings.map((meeting) => (
-          <div
-            key={meeting.id}
-            onClick={() => handleMeetingClick(meeting.id)}
-            className="bg-white px-4 py-4 hover:bg-gray-50 transition-colors cursor-pointer group"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-medium text-gray-900">
-                    {meeting.title}
-                  </h3>
-                  {meeting.hasMatches && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
-                      New
-                    </span>
-                  )}
+      <div className="space-y-4">
+        {/* Upcoming Meetings Section */}
+        {upcomingMeetings.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Upcoming Meetings
+            </h3>
+            <div className="bg-white rounded-lg border border-gray-200">
+              {upcomingMeetings.map((meeting, index) => (
+                <div
+                  key={meeting.id}
+                  onClick={() => handleMeetingClick(meeting.id)}
+                  className={`px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer group ${
+                    index !== upcomingMeetings.length - 1 ? 'border-b border-gray-200' : ''
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-base font-medium text-gray-900">
+                        {meeting.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {meeting.date} • {meeting.time}
+                      </p>
+                    </div>
+                    <ChevronRight size={20} className="text-gray-400 group-hover:text-gray-600" />
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                  <span>{meeting.date}</span>
-                  <span>•</span>
-                  <span>{meeting.time}</span>
-                  <span>•</span>
-                  <span>{meeting.location}</span>
-                </div>
-              </div>
-              <ChevronRight size={16} className="text-gray-400" />
+              ))}
             </div>
           </div>
-        ))}
+        )}
+
+        {/* Past Meetings Section */}
+        {pastMeetings.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Past Meetings
+            </h3>
+            <div className="bg-white rounded-lg border border-gray-200">
+              {pastMeetings.map((meeting, index) => (
+                <div
+                  key={meeting.id}
+                  onClick={() => handleMeetingClick(meeting.id)}
+                  className={`px-6 py-4 hover:bg-gray-50 transition-colors cursor-pointer group ${
+                    index !== pastMeetings.length - 1 ? 'border-b border-gray-200' : ''
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="text-base font-medium text-gray-900">
+                        {meeting.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {meeting.date} • {meeting.time}
+                      </p>
+                    </div>
+                    <ChevronRight size={20} className="text-gray-400 group-hover:text-gray-600" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -233,7 +269,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedLocation, locationName, s
             <div
               key={agenda.id}
               className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-all cursor-pointer"
-              onClick={() => window.open(`/hamlet-dashboard/agenda/${agenda.id}`, '_blank')}
+              onClick={() => router.push(`/hamlet-dashboard/agenda/${agenda.id}`)}
             >
               <div className="flex items-start gap-4">
                 {/* Date Box */}
@@ -349,7 +385,44 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedLocation, locationName, s
           </div>
         )}
         {activeTab === 'meetings' && (
-          <div>{renderMeetingsContent()}</div>
+          <div>
+            {/* Filter Controls for Meetings */}
+            <div className="flex gap-4 mb-6">
+              <FilterSelect
+                label="Year"
+                value={selectedYear}
+                onChange={setSelectedYear}
+                options={[
+                  { value: '2024', label: '2024' },
+                  { value: '2025', label: '2025' },
+                  { value: '2023', label: '2023' }
+                ]}
+              />
+              <FilterSelect
+                label="Governing body"
+                value={selectedGoverningBody}
+                onChange={setSelectedGoverningBody}
+                options={[
+                  { value: 'all', label: 'All bodies' },
+                  { value: 'city-council', label: 'City Council' },
+                  { value: 'planning', label: 'Planning Commission' },
+                  { value: 'zoning', label: 'Zoning Board' }
+                ]}
+              />
+              <div className="flex items-end">
+                <button
+                  onClick={() => {
+                    setSelectedYear('2024');
+                    setSelectedGoverningBody('all');
+                  }}
+                  className="px-4 py-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Clear filters
+                </button>
+              </div>
+            </div>
+            {renderMeetingsContent()}
+          </div>
         )}
         {activeTab === 'agendas' && (
           <div className="bg-gray-50 rounded-lg p-6">

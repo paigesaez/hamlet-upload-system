@@ -3,6 +3,7 @@
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Calendar, MapPin, Building, FileText, ChevronLeft, Download, Share2, Edit, Users } from 'lucide-react';
+import StandardLayout from '@/components/HamletDashboard/StandardLayout';
 
 interface ProjectDocument {
   name: string;
@@ -82,7 +83,7 @@ export default function ProjectDetailPage() {
   const project: Project = mockProjectData[projectId] || mockProjectData['1'];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <StandardLayout>
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -241,6 +242,6 @@ export default function ProjectDetailPage() {
           </div>
         </div>
       </div>
-    </div>
+    </StandardLayout>
   );
 }
