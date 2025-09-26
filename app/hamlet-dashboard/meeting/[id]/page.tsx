@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { Calendar, Clock, MapPin, Users, FileText, ChevronRight, Download, Share2, Edit } from 'lucide-react';
 import Link from 'next/link';
 import StandardLayout from '@/components/HamletDashboard/StandardLayout';
@@ -63,7 +63,6 @@ const mockMeetingData: Record<string, Meeting> = {
 
 export default function MeetingDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const meetingId = params.id as string;
 
   // Get meeting data (in production, this would be an API call)

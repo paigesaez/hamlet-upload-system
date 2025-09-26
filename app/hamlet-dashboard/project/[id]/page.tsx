@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { Calendar, MapPin, Building, FileText, ChevronRight, Download, Share2, Edit, Users } from 'lucide-react';
 import Link from 'next/link';
 import StandardLayout from '@/components/HamletDashboard/StandardLayout';
@@ -78,7 +78,6 @@ const mockProjectData: Record<string, Project> = {
 
 export default function ProjectDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const projectId = params.id as string;
 
   // Get project data (in production, this would be an API call)

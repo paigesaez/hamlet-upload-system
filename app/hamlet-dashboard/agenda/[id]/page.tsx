@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { Calendar, Clock, MapPin, ChevronRight, Download, Share2, FileText, Tag } from 'lucide-react';
 import Link from 'next/link';
 import StandardLayout from '@/components/HamletDashboard/StandardLayout';
@@ -127,7 +127,6 @@ const generateAgendaDetails = (agendaId: string, locationName: string): AgendaDe
 
 export default function AgendaDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const agendaId = params.id as string;
 
   // Extract location information from agendaId
