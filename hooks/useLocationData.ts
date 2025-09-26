@@ -8,15 +8,33 @@ import {
   generateAgendasForLocation
 } from '@/utils/mockDataGenerator';
 
-interface LocationData {
+export interface LocationData {
   projects: Project[];
   meetings: Meeting[];
   agendas: unknown[];
   generatedAt: string;
 }
 
+export type CachedLocationData = LocationData;
+
 interface LocationDataCache {
   [locationId: string]: LocationData;
+}
+
+// Export function to generate data for a location
+export function generateLocationData(locationId: string): LocationData {
+  // Extract location name and state from locationId (e.g., 'mesa' or 'los-angeles')
+  const locationName = locationId.split('-').map(word =>
+    word.charAt(0).toUpperCase() + word.slice(1)
+  ).join(' ');
+  const state = 'CA'; // Default state, could be enhanced
+
+  return {
+    projects: generateProjectsForLocation(locationId, locationName, state, 8),
+    meetings: generateMeetingsForLocation(locationId, locationName, state, 10),
+    agendas: generateAgendasForLocation(locationId, locationName, 8),
+    generatedAt: new Date().toISOString()
+  };
 }
 
 const CACHE_KEY = 'hamlet-location-data-cache';

@@ -6,6 +6,7 @@ import PageHeader from './PageHeader';
 import TabNavigation, { TabType } from './TabNavigation';
 import FilterSelect from '../shared/FilterSelect';
 import { SearchResult, getAllCachedSearchResults } from '@/utils/searchCache';
+import { initializeSearchCache } from '@/utils/initializeCache';
 
 interface HomePageProps {
   sidebarCollapsed?: boolean;
@@ -92,6 +93,9 @@ export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
   }, []);
 
   useEffect(() => {
+    // Initialize the cache on first load
+    initializeSearchCache();
+
     const cachedProjects = getAllCachedSearchResults().filter(result => result.type === 'project');
     if (cachedProjects.length > 0) {
       const sorted = cachedProjects.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
