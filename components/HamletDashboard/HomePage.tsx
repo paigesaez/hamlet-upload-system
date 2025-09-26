@@ -81,9 +81,21 @@ export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
   const [bodyFilter, setBodyFilter] = useState('all');
   const [projects, setProjects] = useState<SearchResult[]>(fallbackProjects);
   const [filteredProjects, setFilteredProjects] = useState<SearchResult[]>(fallbackProjects);
+  const [meetings, setMeetings] = useState<SearchResult[]>([]);
+  const [filteredMeetings, setFilteredMeetings] = useState<SearchResult[]>([]);
+  const [agendas, setAgendas] = useState<SearchResult[]>([]);
+  const [filteredAgendas, setFilteredAgendas] = useState<SearchResult[]>([]);
 
   const handleProjectClick = useCallback((projectId: string) => {
     window.open(`/hamlet-dashboard/project/${projectId}`, '_blank');
+  }, []);
+
+  const handleMeetingClick = useCallback((meetingId: string) => {
+    window.open(`/hamlet-dashboard/meeting/${meetingId}`, '_blank');
+  }, []);
+
+  const handleAgendaClick = useCallback((agendaId: string) => {
+    window.open(`/hamlet-dashboard/agenda/${agendaId}`, '_blank');
   }, []);
 
   const clearFilters = useCallback(() => {
@@ -96,14 +108,34 @@ export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
     // Initialize the cache on first load
     initializeSearchCache();
 
-    const cachedProjects = getAllCachedSearchResults().filter(result => result.type === 'project');
+    const allResults = getAllCachedSearchResults();
+
+    // Load projects
+    const cachedProjects = allResults.filter(result => result.type === 'project');
     if (cachedProjects.length > 0) {
       const sorted = cachedProjects.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
       setProjects(sorted);
       setFilteredProjects(sorted);
     }
+
+    // Load meetings
+    const cachedMeetings = allResults.filter(result => result.type === 'meeting');
+    if (cachedMeetings.length > 0) {
+      const sorted = cachedMeetings.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      setMeetings(sorted);
+      setFilteredMeetings(sorted);
+    }
+
+    // Load agendas
+    const cachedAgendas = allResults.filter(result => result.type === 'agenda');
+    if (cachedAgendas.length > 0) {
+      const sorted = cachedAgendas.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      setAgendas(sorted);
+      setFilteredAgendas(sorted);
+    }
   }, []);
 
+  // Filter projects
   useEffect(() => {
     const next = projects.filter(project => {
       const matchesLocation = locationFilter === 'all' || project.location === locationFilter;
@@ -115,6 +147,32 @@ export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
     const sorted = next.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     setFilteredProjects(sorted);
   }, [projects, locationFilter, yearFilter, bodyFilter]);
+
+  // Filter meetings
+  useEffect(() => {
+    const next = meetings.filter(meeting => {
+      const matchesLocation = locationFilter === 'all' || meeting.location === locationFilter;
+      const matchesYear = yearFilter === 'all' || (meeting.date && meeting.date.startsWith(yearFilter));
+      const matchesBody = bodyFilter === 'all' || meeting.category === bodyFilter;
+      return matchesLocation && matchesYear && matchesBody;
+    });
+
+    const sorted = next.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    setFilteredMeetings(sorted);
+  }, [meetings, locationFilter, yearFilter, bodyFilter]);
+
+  // Filter agendas
+  useEffect(() => {
+    const next = agendas.filter(agenda => {
+      const matchesLocation = locationFilter === 'all' || agenda.location === locationFilter;
+      const matchesYear = yearFilter === 'all' || (agenda.date && agenda.date.startsWith(yearFilter));
+      const matchesBody = bodyFilter === 'all' || agenda.category === bodyFilter;
+      return matchesLocation && matchesYear && matchesBody;
+    });
+
+    const sorted = next.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    setFilteredAgendas(sorted);
+  }, [agendas, locationFilter, yearFilter, bodyFilter]);
 
   const locationOptions = useMemo(() => {
     const uniques = new Set(projects.map(project => project.location).filter(Boolean));
@@ -252,16 +310,161 @@ export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
             </div>
           </>
         ) : activeTab === 'meetings' ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Meetings view coming soon</p>
-            <p className="text-sm text-gray-400 mt-2">
-              Select a location from the sidebar to view meetings
-            </p>
-          </div>
+          <>
+            {/* Section Header */}
+            <h2 className="text-xl font-bold text-gray-900 mb-5">All Meetings</h2>
+
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-4 mb-6">
+              <FilterSelect
+                label="Location"
+                value={locationFilter}
+                onChange={setLocationFilter}
+                options={[
+                  { value: 'all', label: 'All locations' },
+                  ...Array.from(new Set(meetings.map(m => m.location).filter(Boolean))).sort().map(location => ({ value: location, label: location }))
+                ]}
+                className="w-56"
+              />
+
+              <FilterSelect
+                label="Year"
+                value={yearFilter}
+                onChange={setYearFilter}
+                options={[
+                  { value: 'all', label: 'All years' },
+                  ...Array.from(new Set(meetings.map(m => m.date?.slice(0, 4)).filter(Boolean))).sort().map(year => ({ value: year!, label: year! }))
+                ]}
+                className="w-36"
+              />
+
+              {(locationFilter !== 'all' || yearFilter !== 'all') && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+
+            {/* Meetings List */}
+            {filteredMeetings.length > 0 ? (
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {filteredMeetings.map(meeting => (
+                  <div
+                    key={meeting.id}
+                    onClick={() => handleMeetingClick(meeting.id)}
+                    className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow cursor-pointer group"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-xs text-blue-600 font-medium uppercase mb-1">
+                        {meeting.status === 'upcoming' ? 'Upcoming Meeting' : 'Past Meeting'}
+                      </span>
+                      <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                        {meeting.title}
+                      </h3>
+                      <div className="flex items-center gap-3 text-sm text-gray-600 mb-2">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar size={14} className="text-gray-400" />
+                          <span>{meeting.date}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <MapPin size={14} className="text-gray-400" />
+                          <span>{meeting.location}</span>
+                        </div>
+                      </div>
+                      {meeting.time && (
+                        <p className="text-sm text-gray-500">{meeting.time}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                No meetings found. Try adjusting your filters.
+              </div>
+            )}
+          </>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Agendas view coming soon</p>
-          </div>
+          <>
+            {/* Section Header */}
+            <h2 className="text-xl font-bold text-gray-900 mb-5">All Agendas</h2>
+
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-4 mb-6">
+              <FilterSelect
+                label="Location"
+                value={locationFilter}
+                onChange={setLocationFilter}
+                options={[
+                  { value: 'all', label: 'All locations' },
+                  ...Array.from(new Set(agendas.map(a => a.location).filter(Boolean))).sort().map(location => ({ value: location, label: location }))
+                ]}
+                className="w-56"
+              />
+
+              <FilterSelect
+                label="Year"
+                value={yearFilter}
+                onChange={setYearFilter}
+                options={[
+                  { value: 'all', label: 'All years' },
+                  ...Array.from(new Set(agendas.map(a => a.date?.slice(0, 4)).filter(Boolean))).sort().map(year => ({ value: year!, label: year! }))
+                ]}
+                className="w-36"
+              />
+
+              {(locationFilter !== 'all' || yearFilter !== 'all') && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+
+            {/* Agendas List */}
+            {filteredAgendas.length > 0 ? (
+              <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                {filteredAgendas.map(agenda => (
+                  <div
+                    key={agenda.id}
+                    onClick={() => handleAgendaClick(agenda.id)}
+                    className="bg-white border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow cursor-pointer group"
+                  >
+                    <div className="flex flex-col">
+                      <span className="text-xs text-purple-600 font-medium uppercase mb-1">
+                        Meeting Agenda
+                      </span>
+                      <h3 className="text-base font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                        {agenda.title}
+                      </h3>
+                      <div className="flex items-center gap-3 text-sm text-gray-600 mb-2">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar size={14} className="text-gray-400" />
+                          <span>{agenda.date}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <MapPin size={14} className="text-gray-400" />
+                          <span>{agenda.location}</span>
+                        </div>
+                      </div>
+                      {agenda.excerpt && (
+                        <p className="text-sm text-gray-500 line-clamp-2">{agenda.excerpt}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                No agendas found. Try adjusting your filters.
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
