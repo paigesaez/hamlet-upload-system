@@ -12,22 +12,16 @@ export interface Prototype {
 
 const prototypes: Prototype[] = [
   {
-    key: 'hamlet',
-    title: 'Prototype 1: Hamlet',
-    path: '/',
-    description: 'Batch upload for meeting recordings'
+    key: 'form-uploader',
+    title: 'Form Uploader',
+    path: '/form-uploader',
+    description: 'Multi-file upload with drag and drop'
   },
   {
-    key: 'prototype-2',
-    title: 'Prototype 2',
-    path: '/prototype-2',
-    description: 'Second upload workflow'
-  },
-  {
-    key: 'prototype-3',
-    title: 'Prototype 3',
-    path: '/prototype-3',
-    description: 'Third upload workflow'
+    key: 'hamlet-dashboard',
+    title: 'Hamlet Dashboard',
+    path: '/hamlet-dashboard',
+    description: 'Meeting management dashboard'
   }
 ];
 
