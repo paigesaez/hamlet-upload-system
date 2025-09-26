@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Calendar, MapPin, FileText, ChevronRight, Building } from 'lucide-react';
 import { useSavedSearches } from '@/hooks/useSavedSearches';
@@ -21,7 +21,7 @@ const typeIcons = {
   agenda: FileText
 };
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const query = searchParams.get('q') || '';
@@ -271,5 +271,15 @@ export default function SearchPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-gray-500">Loading search...</div>
+    </div>}>
+      <SearchContent />
+    </Suspense>
   );
 }
