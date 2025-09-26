@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Calendar, MapPin, FileText, ChevronRight, Building } from 'lucide-react';
 import { useSavedSearches } from '@/hooks/useSavedSearches';
 import Link from 'next/link';
@@ -23,6 +23,7 @@ const typeIcons = {
 
 export default function SearchPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const query = searchParams.get('q') || '';
   const typeFromUrl = searchParams.get('type') || 'all';
   const locationFromUrl = searchParams.get('location') || 'all';
@@ -70,6 +71,21 @@ export default function SearchPage() {
   const clearFilters = () => {
     setSelectedType('all');
     setSelectedLocation('all');
+  };
+
+  const handleResultClick = (result: SearchResult) => {
+    // Navigate to the appropriate detail page based on type
+    switch(result.type) {
+      case 'meeting':
+        router.push(`/hamlet-dashboard/meeting/${result.id}`);
+        break;
+      case 'project':
+        router.push(`/hamlet-dashboard/project/${result.id}`);
+        break;
+      case 'agenda':
+        router.push(`/hamlet-dashboard/agenda/${result.id}`);
+        break;
+    }
   };
 
   return (
@@ -209,6 +225,7 @@ export default function SearchPage() {
                   return (
                     <div
                       key={result.id}
+                      onClick={() => handleResultClick(result)}
                       className="bg-white border border-gray-200 rounded-lg p-6 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer group"
                     >
                       <div className="flex items-start justify-between">
