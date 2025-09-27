@@ -3,8 +3,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import Sidebar from '@/components/HamletDashboard/Sidebar';
 import { useRouter, usePathname } from 'next/navigation';
-import { locations } from '@/components/HamletDashboard/mockData';
-
 export default function HamletDashboardLayout({
   children,
 }: {
@@ -17,32 +15,17 @@ export default function HamletDashboardLayout({
   const locationFromUrl = pathname.match(/\/hamlet-dashboard\/location\/([^/]+)/)?.[1] || '';
 
   const [selectedLocation, setSelectedLocation] = useState(locationFromUrl);
-  const [locationName, setLocationName] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Sync location state with URL
   useEffect(() => {
-    const locationFromUrl = pathname.match(/\/hamlet-dashboard\/location\/([^/]+)/)?.[1] || '';
-    setSelectedLocation(locationFromUrl);
-
-    // Find location name from data
-    if (locationFromUrl) {
-      for (const state of locations) {
-        if (state.children) {
-          const city = state.children.find(c => c.id === locationFromUrl);
-          if (city) {
-            setLocationName(`${city.name}, ${city.state}`);
-            break;
-          }
-        }
-      }
-    }
+    const locationFromPath = pathname.match(/\/hamlet-dashboard\/location\/([^/]+)/)?.[1] || '';
+    setSelectedLocation(locationFromPath);
   }, [pathname]);
 
-  const handleLocationSelect = useCallback((locationId: string, name: string) => {
+  const handleLocationSelect = useCallback((locationId: string) => {
     setSelectedLocation(locationId);
-    setLocationName(name);
     // Navigate to location page
     router.push(`/hamlet-dashboard/location/${locationId}`);
     // Close sidebar on mobile after selection
@@ -53,7 +36,6 @@ export default function HamletDashboardLayout({
 
   const handleLogoClick = useCallback(() => {
     setSelectedLocation('');
-    setLocationName('');
     router.push('/hamlet-dashboard');
   }, [router]);
 

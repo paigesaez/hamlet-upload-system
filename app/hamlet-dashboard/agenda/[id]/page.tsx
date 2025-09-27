@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Calendar, Clock, MapPin, ChevronRight, Download, Share2, FileText, Tag } from 'lucide-react';
 import Link from 'next/link';
 import StandardLayout from '@/components/HamletDashboard/StandardLayout';
+import PageHeader from '@/components/HamletDashboard/PageHeader';
 import { getLocationInfo, extractLocationIdFromId } from '@/utils/locationHelpers';
 
 interface AgendaItem {
@@ -155,38 +156,74 @@ export default function AgendaDetailPage() {
     console.log(`Downloading ${documentName}`);
   };
 
+  const breadcrumbs = (
+    <nav className="flex items-center gap-2 text-sm text-gray-600">
+      <Link href="/hamlet-dashboard" className="hover:text-gray-900">
+        Dashboard
+      </Link>
+      <ChevronRight size={16} className="text-gray-400" />
+      <Link
+        href={`/hamlet-dashboard/location/${locationId}?tab=agendas`}
+        className="hover:text-gray-900"
+      >
+        {locationFullName} Agendas
+      </Link>
+      <ChevronRight size={16} className="text-gray-400" />
+      <span className="text-gray-900 font-medium">Agenda Detail</span>
+    </nav>
+  );
+
+  const actions = (
+    <button
+      onClick={handleShareClick}
+      className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+      aria-label="Share agenda"
+    >
+      <Share2 size={20} />
+    </button>
+  );
+
+  const subtitle = `${agendaDetails.date} • ${agendaDetails.time} • ${agendaDetails.location}`;
+
   return (
     <StandardLayout>
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between mb-4">
-            {/* Breadcrumbs */}
-            <nav className="flex items-center gap-2 text-sm">
-              <Link href="/hamlet-dashboard" className="text-gray-600 hover:text-gray-900">
-                Dashboard
-              </Link>
-              <ChevronRight size={16} className="text-gray-400" />
-              <Link href={`/hamlet-dashboard/location/${locationId}?tab=agendas`} className="text-gray-600 hover:text-gray-900">
-                {locationFullName} Agendas
-              </Link>
-              <ChevronRight size={16} className="text-gray-400" />
-              <span className="text-gray-900 font-medium">Agenda Detail</span>
-            </nav>
-            <button
-              onClick={handleShareClick}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <Share2 size={20} />
-            </button>
-          </div>
+      <PageHeader
+        title={agendaDetails.title}
+        subtitle={subtitle}
+        breadcrumbs={breadcrumbs}
+        actions={actions}
+        showSearch
+      />
 
-          <div>
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 mb-3">
-              {agendaDetails.type}
-            </span>
-            <h1 className="text-3xl font-bold text-gray-900">{agendaDetails.title}</h1>
-            <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-gray-600">
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                {agendaDetails.type}
+              </span>
+              {agendaDetails.matches && agendaDetails.matches.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                  <Tag size={14} className="text-gray-500" />
+                  {agendaDetails.matches.map((match, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-2.5 py-1 rounded-md font-medium"
+                      style={{
+                        backgroundColor: index === 0 ? '#FED7AA' : '#CCFBF1',
+                        color: index === 0 ? '#9A3412' : '#065F46'
+                      }}
+                    >
+                      {match.label} ({match.count})
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-1.5">
                 <Calendar size={16} />
                 <span>{agendaDetails.date}</span>
@@ -201,35 +238,6 @@ export default function AgendaDetailPage() {
               </div>
             </div>
 
-            {/* Matches/Tags */}
-            {agendaDetails.matches && agendaDetails.matches.length > 0 && (
-              <div className="flex items-center gap-2 mt-4">
-                <Tag size={16} className="text-gray-500" />
-                <div className="flex gap-2">
-                  {agendaDetails.matches.map((match, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium"
-                      style={{
-                        backgroundColor: index === 0 ? '#FED7AA' : '#CCFBF1',
-                        color: index === 0 ? '#9A3412' : '#065F46'
-                      }}
-                    >
-                      {match.label} ({match.count})
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
             {/* Description */}
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">Meeting Overview</h2>

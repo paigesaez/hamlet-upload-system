@@ -30,13 +30,13 @@ function readSavedSearches(): SavedSearch[] {
 
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    cachedSearches = stored ? JSON.parse(stored) : [];
+    cachedSearches = stored ? (JSON.parse(stored) as SavedSearch[]) : [];
   } catch (error) {
     console.error('Error loading saved searches:', error);
     cachedSearches = [];
   }
 
-  return cachedSearches;
+  return cachedSearches ?? [];
 }
 
 function persistSavedSearches(searches: SavedSearch[]) {
@@ -48,9 +48,11 @@ function persistSavedSearches(searches: SavedSearch[]) {
 }
 
 export function useSavedSearches() {
-  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>(() => readSavedSearches());
+  const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
 
   useEffect(() => {
+    setSavedSearches(readSavedSearches());
+
     const listener: SavedSearchListener = (searches) => {
       setSavedSearches(searches);
     };

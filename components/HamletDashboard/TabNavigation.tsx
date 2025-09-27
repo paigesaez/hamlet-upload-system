@@ -17,7 +17,7 @@ export default function TabNavigation({ activeTab, onTabChange }: TabNavigationP
   ];
 
   return (
-    <div className="bg-white px-8">
+    <div className="bg-white px-4 sm:px-6 lg:px-8">
       <div className="flex gap-8">
         {tabs.map((tab) => (
           <button

@@ -1,21 +1,21 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Calendar, MapPin, Clock, ChevronRight, FileText } from 'lucide-react';
-import { getMeetingsForLocation, Meeting, getProjectsForLocation, Project } from './mockData';
+import { ChevronRight, Share2 } from 'lucide-react';
+import { getMeetingsForLocation, getProjectsForLocation } from './mockData';
 import PageHeader from './PageHeader';
 import TabNavigation, { TabType } from './TabNavigation';
 import FilterSelect from '@/components/shared/FilterSelect';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 interface DashboardProps {
   selectedLocation: string;
   locationName: string;
-  sidebarCollapsed?: boolean;
 }
 
 
-const Dashboard: React.FC<DashboardProps> = ({ selectedLocation, locationName, sidebarCollapsed = false }) => {
+const Dashboard: React.FC<DashboardProps> = ({ selectedLocation, locationName }) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -49,6 +49,10 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedLocation, locationName, s
   const handleMeetingClick = useCallback((meetingId: string) => {
     // Navigate to meeting detail page
     router.push(`/hamlet-dashboard/meeting/${meetingId}`);
+  }, [router]);
+
+  const handleProjectClick = useCallback((projectId: string) => {
+    router.push(`/hamlet-dashboard/project/${projectId}`);
   }, [router]);
 
   const renderMeetingsContent = () => {
@@ -163,7 +167,7 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedLocation, locationName, s
         {projects.map((project) => (
           <div
             key={project.id}
-            onClick={() => window.open(`/hamlet-dashboard/project/${project.id}`, '_blank')}
+            onClick={() => handleProjectClick(project.id)}
             className="bg-white border border-gray-200 rounded-lg px-4 py-3 hover:bg-gray-50 transition-all cursor-pointer group"
           >
             <div className="flex items-center justify-between">
@@ -321,63 +325,61 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedLocation, locationName, s
     );
   };
 
+  const handleTabChange = useCallback((tab: TabType) => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(Array.from(searchParams.entries()));
+    params.set('tab', tab);
+    router.push(`${pathname}?${params.toString()}`);
+  }, [searchParams, router, pathname]);
+
+  const handleShareLocation = useCallback(() => {
+    if (typeof window === 'undefined' || !selectedLocation) return;
+
+    const sharePayload = {
+      title: locationName ? `${locationName} — Hamlet Dashboard` : 'Hamlet Dashboard',
+      text: locationName ? `Location dashboard for ${locationName}` : 'Hamlet Dashboard',
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      navigator.share(sharePayload).catch(() => navigator.clipboard.writeText(window.location.href));
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Link copied to clipboard!');
+    }
+  }, [locationName, selectedLocation]);
+
   return (
     <div className="flex-1 bg-gray-50 min-h-screen">
       <PageHeader
         title={locationName || 'Select a Location'}
         subtitle={locationName ? 'Meeting activity and updates' : undefined}
+        breadcrumbs={selectedLocation ? (
+          <nav className="flex items-center gap-2 text-sm text-gray-600">
+            <Link href="/hamlet-dashboard" className="hover:text-gray-900">
+              Dashboard
+            </Link>
+            <ChevronRight size={16} className="text-gray-400" />
+            <span className="text-gray-900 font-medium">{locationName}</span>
+          </nav>
+        ) : undefined}
+        actions={selectedLocation ? (
+          <button
+            onClick={handleShareLocation}
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            aria-label="Share location"
+          >
+            <Share2 size={20} />
+          </button>
+        ) : undefined}
+        showSearch
       />
 
       {/* Tabs */}
-      <div className="bg-white px-8">
-        <div className="flex gap-8">
-          <button
-            onClick={() => {
-              const params = new URLSearchParams(searchParams);
-              params.set('tab', 'projects');
-              router.push(`${pathname}?${params.toString()}`);
-            }}
-            className={`py-4 px-1 border-b-2 transition-colors font-medium text-sm ${
-              activeTab === 'projects'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Projects
-          </button>
-          <button
-            onClick={() => {
-              const params = new URLSearchParams(searchParams);
-              params.set('tab', 'meetings');
-              router.push(`${pathname}?${params.toString()}`);
-            }}
-            className={`py-4 px-1 border-b-2 transition-colors font-medium text-sm ${
-              activeTab === 'meetings'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Meetings
-          </button>
-          <button
-            onClick={() => {
-              const params = new URLSearchParams(searchParams);
-              params.set('tab', 'agendas');
-              router.push(`${pathname}?${params.toString()}`);
-            }}
-            className={`py-4 px-1 border-b-2 transition-colors font-medium text-sm ${
-              activeTab === 'agendas'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Agendas
-          </button>
-        </div>
-      </div>
+      <TabNavigation activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Content Area */}
-      <div className="px-8 py-6">
+      <div className="px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === 'projects' && (
           <div>
             {renderProjectsContent()}

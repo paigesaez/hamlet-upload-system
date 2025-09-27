@@ -24,7 +24,6 @@ export default function LocationPage() {
     <Dashboard
       selectedLocation={locationId}
       locationName={locationName}
-      sidebarCollapsed={false}
     />
   );
 }

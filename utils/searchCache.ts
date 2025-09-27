@@ -1,7 +1,14 @@
-import { locations, Meeting, Project } from '@/components/HamletDashboard/mockData';
+import locationsData from '@/data/mock-data/locations.json';
 import agendasData from '@/data/mock-data/agendas.json';
 import meetingsData from '@/data/mock-data/meetings.json';
 import projectsData from '@/data/mock-data/projects.json';
+import {
+  Location,
+  Meeting,
+  Project,
+} from '@/components/HamletDashboard/mockData';
+
+const locations = locationsData as Location[];
 
 export interface AgendaMatch {
   label: string;

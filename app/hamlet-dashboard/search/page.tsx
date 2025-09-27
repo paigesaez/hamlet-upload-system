@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Search, Calendar, MapPin, FileText, ChevronRight, Building } from 'lucide-react';
+import { Search, Calendar, MapPin, FileText, ChevronRight, Building, X } from 'lucide-react';
 import { useSavedSearches } from '@/hooks/useSavedSearches';
 import Link from 'next/link';
 import PageHeader from '@/components/HamletDashboard/PageHeader';
@@ -24,7 +24,7 @@ const typeIcons = {
 function SearchContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const query = searchParams.get('q') || '';
+  const queryFromUrl = searchParams.get('q') || '';
   const typeFromUrl = searchParams.get('type') || 'all';
   const locationFromUrl = searchParams.get('location') || 'all';
 
@@ -32,6 +32,7 @@ function SearchContent() {
   const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
   const [selectedType, setSelectedType] = useState<string>(typeFromUrl);
   const [selectedLocation, setSelectedLocation] = useState<string>(locationFromUrl);
+  const [searchTerm, setSearchTerm] = useState<string>(queryFromUrl);
   const { saveSearch, savedSearches } = useSavedSearches();
 
   const activeFilters = useMemo(
@@ -45,12 +46,16 @@ function SearchContent() {
   const isAlreadySaved = useMemo(
     () =>
       savedSearches.some(s =>
-        s.query === query &&
+        s.query === searchTerm.trim() &&
         (s.filters?.type ?? undefined) === activeFilters.type &&
         (s.filters?.location ?? undefined) === activeFilters.location
       ),
-    [savedSearches, query, activeFilters]
+    [savedSearches, searchTerm, activeFilters]
   );
+
+  useEffect(() => {
+    setSearchTerm(queryFromUrl);
+  }, [queryFromUrl]);
 
   // Get unique locations from all results
   const uniqueLocations = useMemo(() => {
@@ -66,11 +71,13 @@ function SearchContent() {
 
   // Filter results based on query and filters
   useEffect(() => {
-    if (query) {
+    const trimmed = searchTerm.trim();
+    if (trimmed) {
       let results = allResults.filter(result => {
-        const matchesQuery = result.title.toLowerCase().includes(query.toLowerCase()) ||
-                            result.excerpt.toLowerCase().includes(query.toLowerCase()) ||
-                            result.location.toLowerCase().includes(query.toLowerCase());
+        const lower = trimmed.toLowerCase();
+        const matchesQuery = result.title.toLowerCase().includes(lower) ||
+                            result.excerpt.toLowerCase().includes(lower) ||
+                            result.location.toLowerCase().includes(lower);
 
         const matchesType = selectedType === 'all' || result.type === selectedType;
         const matchesLocation = selectedLocation === 'all' || result.location === selectedLocation;
@@ -84,11 +91,12 @@ function SearchContent() {
     } else {
       setFilteredResults([]);
     }
-  }, [query, selectedType, selectedLocation, allResults]);
+  }, [searchTerm, selectedType, selectedLocation, allResults]);
 
   const clearFilters = () => {
     setSelectedType('all');
     setSelectedLocation('all');
+    setSearchTerm('');
   };
 
   const handleResultClick = (result: SearchResult) => {
@@ -111,7 +119,7 @@ function SearchContent() {
       {/* Header */}
       <PageHeader
         title="Search Results"
-        subtitle={`Found ${filteredResults.length} results for "${query}"`}
+        subtitle={`Found ${filteredResults.length} results${searchTerm?.trim() ? ` for "${searchTerm}"` : ''}`}
         showSearch={false}
       />
 
@@ -136,11 +144,35 @@ function SearchContent() {
                   <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
                   <input
                     type="text"
-                    value={query}
-                    readOnly
-                    className="w-full bg-white border border-gray-300 rounded-lg pl-12 pr-4 py-2.5 text-base font-medium"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full bg-white border border-gray-300 rounded-lg pl-12 pr-12 py-2.5 text-base font-medium"
                     placeholder="Search query..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const params = new URLSearchParams();
+                        const trimmed = searchTerm.trim();
+                        if (trimmed) params.set('q', trimmed);
+                        if (selectedType !== 'all') params.set('type', selectedType);
+                        if (selectedLocation !== 'all') params.set('location', selectedLocation);
+                        const queryString = params.toString();
+                        router.push(`/hamlet-dashboard/search${queryString ? `?${queryString}` : ''}`);
+                      }
+                    }}
                   />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchTerm('');
+                        router.push('/hamlet-dashboard/search');
+                      }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      aria-label="Clear search query"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
                 </div>
 
                 {/* Type Filter */}
@@ -184,13 +216,15 @@ function SearchContent() {
                 <button
                   onClick={() => {
                     if (!isAlreadySaved) {
+                      const trimmed = searchTerm.trim();
+                      if (!trimmed) return;
                       const filtersToSave = Object.keys(activeFilters).length ? activeFilters : undefined;
-                      saveSearch(query, undefined, filtersToSave);
+                      saveSearch(trimmed, undefined, filtersToSave);
                     }
                   }}
-                  disabled={isAlreadySaved}
+                  disabled={isAlreadySaved || !searchTerm.trim()}
                   className={`px-4 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                    isAlreadySaved
+                    isAlreadySaved || !searchTerm.trim()
                       ? 'bg-gray-400 cursor-not-allowed text-gray-200'
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
@@ -204,7 +238,7 @@ function SearchContent() {
               </div>
 
               <p className="text-sm text-gray-600">
-                Found {filteredResults.length} results {query && `for "${query}"`}
+                Found {filteredResults.length} results {searchTerm?.trim() && `for "${searchTerm}"`}
                 {selectedType !== 'all' && ` • Type: ${selectedType}`}
                 {selectedLocation !== 'all' && ` • Location: ${selectedLocation}`}
               </p>

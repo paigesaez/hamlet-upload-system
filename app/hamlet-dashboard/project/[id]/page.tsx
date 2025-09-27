@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import { Calendar, MapPin, Building, FileText, ChevronRight, Download, Share2, Edit, Users } from 'lucide-react';
+import { Calendar, MapPin, Building, FileText, ChevronRight, Download, Share2, Users } from 'lucide-react';
 import Link from 'next/link';
 import StandardLayout from '@/components/HamletDashboard/StandardLayout';
+import PageHeader from '@/components/HamletDashboard/PageHeader';
 import { getLocationInfo, extractLocationIdFromId } from '@/utils/locationHelpers';
 
 interface ProjectDocument {
@@ -89,36 +90,65 @@ export default function ProjectDetailPage() {
   const locationName = locationInfo?.name || locationId.charAt(0).toUpperCase() + locationId.slice(1);
   const locationFullName = locationInfo?.fullName || locationName;
 
+  const breadcrumbs = (
+    <nav className="flex items-center gap-2 text-sm text-gray-600">
+      <Link href="/hamlet-dashboard" className="hover:text-gray-900">
+        Dashboard
+      </Link>
+      <ChevronRight size={16} className="text-gray-400" />
+      <Link
+        href={`/hamlet-dashboard/location/${locationId}?tab=projects`}
+        className="hover:text-gray-900"
+      >
+        {locationFullName} Projects
+      </Link>
+      <ChevronRight size={16} className="text-gray-400" />
+      <span className="text-gray-900 font-medium">Project Detail</span>
+    </nav>
+  );
+
+  const actions = (
+    <button
+      onClick={() => {
+        if (navigator.share) {
+          navigator.share({
+            title: project.title,
+            text: `Project: ${project.title}`,
+            url: window.location.href,
+          });
+        } else {
+          navigator.clipboard.writeText(window.location.href);
+          alert('Link copied to clipboard!');
+        }
+      }}
+      className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+      aria-label="Share project"
+    >
+      <Share2 size={20} />
+    </button>
+  );
+
+  const subtitleParts = [project.location];
+  if (project.address) subtitleParts.push(project.address);
+  subtitleParts.push(`Hearing ${project.date}`);
+  const subtitle = subtitleParts.join(' • ');
+
   return (
     <StandardLayout>
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between mb-4">
-            {/* Breadcrumbs */}
-            <nav className="flex items-center gap-2 text-sm">
-              <Link href="/hamlet-dashboard" className="text-gray-600 hover:text-gray-900">
-                Dashboard
-              </Link>
-              <ChevronRight size={16} className="text-gray-400" />
-              <Link href={`/hamlet-dashboard/location/${locationId}?tab=projects`} className="text-gray-600 hover:text-gray-900">
-                {locationFullName} Projects
-              </Link>
-              <ChevronRight size={16} className="text-gray-400" />
-              <span className="text-gray-900 font-medium">Project Detail</span>
-            </nav>
-            <div className="flex items-center gap-3">
-              <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-                <Share2 size={20} />
-              </button>
-              <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-                <Edit size={20} />
-              </button>
-            </div>
-          </div>
+      <PageHeader
+        title={project.title}
+        subtitle={subtitle}
+        breadcrumbs={breadcrumbs}
+        actions={actions}
+        showSearch
+      />
 
-          <div>
-            <div className="flex items-center gap-3 mb-3">
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="flex items-center gap-3">
               <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
                 {project.type}
               </span>
@@ -126,8 +156,8 @@ export default function ProjectDetailPage() {
                 {project.status}
               </span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">{project.title}</h1>
-            <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-gray-600">
+
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-1.5">
                 <Calendar size={16} />
                 <span>Hearing: {project.date}</span>
@@ -143,15 +173,7 @@ export default function ProjectDetailPage() {
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
             {/* Description */}
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">Project Description</h2>

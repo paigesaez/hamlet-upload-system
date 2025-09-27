@@ -243,7 +243,7 @@ export default function HomePage({ sidebarCollapsed = false }: HomePageProps) {
       <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Content Area */}
-      <div className={`px-8 py-6 ${sidebarCollapsed ? 'lg:pl-24' : ''}`}>
+      <div className={`px-4 sm:px-6 lg:px-8 py-6 ${sidebarCollapsed ? 'lg:pl-24' : ''}`}>
         {activeTab === 'projects' ? (
           <>
             {/* Section Header */}

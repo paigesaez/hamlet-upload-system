@@ -4,6 +4,9 @@ import React, { useState, useCallback } from 'react';
 import Sidebar from './Sidebar';
 import Dashboard from './Dashboard';
 import HomePage from './HomePage';
+import locationsData from '@/data/mock-data/locations.json';
+
+const locations = locationsData;
 
 export default function HamletDashboard() {
   const [selectedLocation, setSelectedLocation] = useState('');
@@ -11,9 +14,25 @@ export default function HamletDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  const handleLocationSelect = useCallback((locationId: string, name: string) => {
+  const handleLocationSelect = useCallback((locationId: string) => {
     setSelectedLocation(locationId);
-    setLocationName(name);
+
+    let resolvedName = '';
+    for (const state of locations) {
+      if (state.id === locationId) {
+        resolvedName = `${state.name}, ${state.state}`;
+        break;
+      }
+      if (state.children) {
+        const city = state.children.find(child => child.id === locationId);
+        if (city) {
+          resolvedName = `${city.name}, ${city.state}`;
+          break;
+        }
+      }
+    }
+
+    setLocationName(resolvedName);
     // Close sidebar on mobile after selection
     if (window.innerWidth < 1024) {
       setIsSidebarOpen(false);
@@ -44,7 +63,6 @@ export default function HamletDashboard() {
         <Dashboard
           selectedLocation={selectedLocation}
           locationName={locationName}
-          sidebarCollapsed={isSidebarCollapsed}
         />
       ) : (
         <HomePage sidebarCollapsed={isSidebarCollapsed} />

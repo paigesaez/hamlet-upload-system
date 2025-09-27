@@ -2,12 +2,14 @@
 
 import React, { useState, useMemo } from 'react';
 import { ChevronDown, ChevronRight, Search, Menu, X, Lock, LogOut, HelpCircle, ChevronLeft, Trash2 } from 'lucide-react';
-import { locations } from './mockData';
+import locationsData from '@/data/mock-data/locations.json';
+
+const locations = locationsData;
 import { useSavedSearches } from '@/hooks/useSavedSearches';
 
 interface SidebarProps {
   selectedLocation: string;
-  onLocationSelect: (locationId: string, locationName: string) => void;
+  onLocationSelect: (locationId: string) => void;
   onLogoClick?: () => void;
   isOpen: boolean;
   onToggle: () => void;
@@ -220,7 +222,7 @@ export default function Sidebar({ selectedLocation, onLocationSelect, onLogoClic
                           if (city.isLocked) {
                             alert('Upgrade to Premium to access this location');
                           } else {
-                            onLocationSelect(city.id, `${city.name}, ${city.state}`);
+                            onLocationSelect(city.id);
                           }
                         }}
                         className={`

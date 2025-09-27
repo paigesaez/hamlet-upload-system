@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { useParams } from 'next/navigation';
-import { Calendar, Clock, MapPin, Users, FileText, ChevronRight, Download, Share2, Edit } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, FileText, ChevronRight, Download, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import StandardLayout from '@/components/HamletDashboard/StandardLayout';
+import PageHeader from '@/components/HamletDashboard/PageHeader';
 import { getLocationInfo, extractLocationIdFromId } from '@/utils/locationHelpers';
 
 interface Participant {
@@ -74,57 +75,68 @@ export default function MeetingDetailPage() {
   const locationName = locationInfo?.name || locationId.charAt(0).toUpperCase() + locationId.slice(1);
   const locationFullName = locationInfo?.fullName || locationName;
 
+  const breadcrumbs = (
+    <nav className="flex items-center gap-2 text-sm text-gray-600">
+      <Link href="/hamlet-dashboard" className="hover:text-gray-900">
+        Dashboard
+      </Link>
+      <ChevronRight size={16} className="text-gray-400" />
+      <Link
+        href={`/hamlet-dashboard/location/${locationId}?tab=meetings`}
+        className="hover:text-gray-900"
+      >
+        {locationFullName} Meetings
+      </Link>
+      <ChevronRight size={16} className="text-gray-400" />
+      <span className="text-gray-900 font-medium">Meeting Detail</span>
+    </nav>
+  );
+
+  const actions = (
+    <button
+      onClick={() => {
+        if (navigator.share) {
+          navigator.share({
+            title: meeting.title,
+            text: `Meeting: ${meeting.title} on ${meeting.date}`,
+            url: window.location.href,
+          });
+        } else {
+          navigator.clipboard.writeText(window.location.href);
+          alert('Link copied to clipboard!');
+        }
+      }}
+      className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+      aria-label="Share meeting"
+    >
+      <Share2 size={20} />
+    </button>
+  );
+
+  const subtitle = `${meeting.date} • ${meeting.time} • ${meeting.location}`;
+
   return (
     <StandardLayout>
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between mb-4">
-            {/* Breadcrumbs */}
-            <nav className="flex items-center gap-2 text-sm">
-              <Link href="/hamlet-dashboard" className="text-gray-600 hover:text-gray-900">
-                Dashboard
-              </Link>
-              <ChevronRight size={16} className="text-gray-400" />
-              <Link href={`/hamlet-dashboard/location/${locationId}?tab=meetings`} className="text-gray-600 hover:text-gray-900">
-                {locationFullName} Meetings
-              </Link>
-              <ChevronRight size={16} className="text-gray-400" />
-              <span className="text-gray-900 font-medium">Meeting Detail</span>
-            </nav>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({
-                      title: meeting.title,
-                      text: `Meeting: ${meeting.title} on ${meeting.date}`,
-                      url: window.location.href,
-                    });
-                  } else {
-                    navigator.clipboard.writeText(window.location.href);
-                    alert('Link copied to clipboard!');
-                  }
-                }}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Share2 size={20} />
-              </button>
-              <button
-                onClick={() => alert('Edit functionality would be here')}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Edit size={20} />
-              </button>
-            </div>
-          </div>
+      <PageHeader
+        title={meeting.title}
+        subtitle={subtitle}
+        breadcrumbs={breadcrumbs}
+        actions={actions}
+        showSearch
+      />
 
-          <div>
-            <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 mb-3">
-              {meeting.status === 'upcoming' ? 'Upcoming' : 'Past'} Meeting
-            </span>
-            <h1 className="text-3xl font-bold text-gray-900">{meeting.title}</h1>
-            <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-gray-600">
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="flex items-center gap-3">
+              <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${meeting.status === 'upcoming' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700'}`}>
+                {meeting.status === 'upcoming' ? 'Upcoming Meeting' : 'Past Meeting'}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
               <div className="flex items-center gap-1.5">
                 <Calendar size={16} />
                 <span>{meeting.date}</span>
@@ -138,15 +150,7 @@ export default function MeetingDetailPage() {
                 <span>{meeting.location}</span>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
             {/* Description */}
             <div className="bg-white rounded-lg p-6 border border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900 mb-3">Description</h2>
